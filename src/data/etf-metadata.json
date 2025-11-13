@@ -1,0 +1,183 @@
+{
+  "IVV.AX": {
+    "description": "Tracks the S&P 500 Index, providing exposure to 500 of the largest US companies across diverse sectors.",
+    "category": "Global Shares",
+    "indexTracked": "S&P 500 Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Apple Inc.", "weight": "7.2%"},
+      {"name": "Microsoft Corporation", "weight": "6.8%"},
+      {"name": "Amazon.com Inc.", "weight": "3.5%"},
+      {"name": "NVIDIA Corporation", "weight": "3.2%"},
+      {"name": "Alphabet Inc. Class A", "weight": "2.1%"},
+      {"name": "Meta Platforms Inc.", "weight": "2.0%"},
+      {"name": "Tesla Inc.", "weight": "1.8%"},
+      {"name": "Berkshire Hathaway Inc.", "weight": "1.7%"}
+    ],
+    "mer": "0.04%",
+    "dividendYield": "1.4%",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "20%",
+      "3Y": "14%",
+      "5Y": "17%",
+      "10Y": "15%"
+    },
+    "goodFor": "Long-term growth investors seeking broad US market exposure with low fees. Ideal for building core portfolio holdings."
+  },
+  "NDQ.AX": {
+    "description": "Provides exposure to the NASDAQ-100 Index, focusing on the 100 largest non-financial companies listed on NASDAQ.",
+    "category": "Tech & Growth",
+    "indexTracked": "NASDAQ-100 Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Apple Inc.", "weight": "12.5%"},
+      {"name": "Microsoft Corporation", "weight": "11.8%"},
+      {"name": "Amazon.com Inc.", "weight": "6.2%"},
+      {"name": "NVIDIA Corporation", "weight": "5.8%"},
+      {"name": "Alphabet Inc. Class A", "weight": "4.1%"},
+      {"name": "Meta Platforms Inc.", "weight": "3.9%"},
+      {"name": "Tesla Inc.", "weight": "3.5%"},
+      {"name": "Broadcom Inc.", "weight": "2.2%"}
+    ],
+    "mer": "0.48%",
+    "dividendYield": "0.8%",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "24%",
+      "3Y": "26%",
+      "5Y": "17%",
+      "10Y": "20%"
+    },
+    "goodFor": "Investors seeking concentrated exposure to US technology and growth companies. Higher volatility but strong long-term growth potential."
+  },
+  "EBTC.XA": {
+    "description": "Provides direct exposure to Bitcoin through a physically-backed ETF structure, tracking Bitcoin's price movements.",
+    "category": "Cryptocurrency",
+    "indexTracked": "Bitcoin Spot Price",
+    "strategy": "Physical Bitcoin backing",
+    "holdings": [
+      {"name": "Bitcoin (BTC)", "weight": "~99.5%"},
+      {"name": "Cash & Equivalents", "weight": "~0.5%"}
+    ],
+    "mer": "0.99%",
+    "dividendYield": "N/A",
+    "distributionFrequency": "N/A",
+    "performance": {
+      "1Y": "89%",
+      "3Y": "81%",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking cryptocurrency exposure through a regulated, exchange-traded structure. High volatility asset class."
+  },
+  "EETH.XA": {
+    "description": "Provides direct exposure to Ethereum through a physically-backed ETF structure, tracking Ethereum's price movements.",
+    "category": "Cryptocurrency",
+    "indexTracked": "Ethereum Spot Price",
+    "strategy": "Physical Ethereum backing",
+    "holdings": [
+      {"name": "Ethereum (ETH)", "weight": "~99.5%"},
+      {"name": "Cash & Equivalents", "weight": "~0.5%"}
+    ],
+    "mer": "0.99%",
+    "dividendYield": "N/A",
+    "distributionFrequency": "N/A",
+    "performance": {
+      "1Y": "90%",
+      "3Y": "48%",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking Ethereum exposure through a regulated ETF structure. Suitable for those comfortable with high cryptocurrency volatility."
+  },
+  "STRF": {
+    "description": "Strategy Inc. focuses on strategic investment opportunities across various asset classes and market segments.",
+    "category": "Multi-Asset",
+    "indexTracked": "Custom Strategy",
+    "strategy": "Active management",
+    "holdings": [
+      {"name": "Diversified Holdings", "weight": "Various"}
+    ],
+    "mer": "—",
+    "dividendYield": "—",
+    "distributionFrequency": "—",
+    "performance": {
+      "1Y": "20%",
+      "3Y": "—",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking actively managed exposure with strategic allocation across multiple asset classes."
+  },
+  "VHY.AX": {
+    "description": "Focuses on Australian companies with high dividend yields, providing income-focused exposure to the Australian equity market.",
+    "category": "Australian Shares - Income",
+    "indexTracked": "FTSE Australia High Dividend Yield Index",
+    "strategy": "Passive index tracking - high yield focus",
+    "holdings": [
+      {"name": "BHP Group Limited", "weight": "8.5%"},
+      {"name": "Commonwealth Bank of Australia", "weight": "7.2%"},
+      {"name": "Westpac Banking Corporation", "weight": "5.8%"},
+      {"name": "ANZ Group Holdings Limited", "weight": "5.1%"},
+      {"name": "National Australia Bank Limited", "weight": "4.9%"},
+      {"name": "Rio Tinto Limited", "weight": "4.2%"},
+      {"name": "Telstra Corporation Limited", "weight": "3.8%"},
+      {"name": "Woodside Energy Group Ltd", "weight": "3.5%"}
+    ],
+    "mer": "0.25%",
+    "dividendYield": "4.8%",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "18%",
+      "3Y": "15%",
+      "5Y": "15%",
+      "10Y": "10%"
+    },
+    "goodFor": "Income-focused investors seeking regular dividend payments from Australian companies. Suitable for retirees or those building passive income streams."
+  },
+  "VAP.AX": {
+    "description": "Provides exposure to Australian real estate investment trusts (REITs) and property securities, tracking the S&P/ASX 300 A-REIT Index.",
+    "category": "Australian Property",
+    "indexTracked": "S&P/ASX 300 A-REIT Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Goodman Group", "weight": "12.5%"},
+      {"name": "Scentre Group", "weight": "10.2%"},
+      {"name": "Stockland Corporation", "weight": "8.8%"},
+      {"name": "Mirvac Group", "weight": "7.5%"},
+      {"name": "GPT Group", "weight": "6.2%"},
+      {"name": "Dexus", "weight": "5.9%"},
+      {"name": "Charter Hall Group", "weight": "5.1%"},
+      {"name": "Vicinity Centres", "weight": "4.8%"}
+    ],
+    "mer": "0.23%",
+    "dividendYield": "4.2%",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "16%",
+      "3Y": "—",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking exposure to Australian commercial and residential property markets through REITs. Provides diversification and regular income distributions."
+  },
+  "VAF.AX": {
+    "description": "Invests in a diversified portfolio of Australian fixed interest securities, including government and corporate bonds.",
+    "category": "Fixed Interest",
+    "indexTracked": "Bloomberg AusBond Composite 0+ Yr Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Australian Government Bonds", "weight": "~45%"},
+      {"name": "Semi-Government Bonds", "weight": "~25%"},
+      {"name": "Corporate Bonds", "weight": "~30%"}
+    ],
+    "mer": "0.20%",
+    "dividendYield": "3.2%",
+    "distributionFrequency": "Monthly",
+    "performance": {
+      "1Y": "4%",
+      "3Y": "4%",
+      "5Y": "0%",
+      "10Y": "2%"
+    },
+    "goodFor": "Conservative investors seeking stable income with lower volatility. Ideal for portfolio diversification and capital preservation. Suitable for those nearing or in retirement."
+  }
+}
+

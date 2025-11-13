@@ -1,0 +1,10 @@
+[
+  {"symbol": "IVV.AX", "name": "iShares S&P 500 ETF", "group": "growth"},
+  {"symbol": "NDQ.AX", "name": "BetaShares NASDAQ 100 ETF", "group": "growth"},
+  {"symbol": "EBTC.XA", "name": "Global X 21Shares Bitcoin ETF", "group": "growth"},
+  {"symbol": "EETH.XA", "name": "Global X 21Shares Ethereum ETF", "group": "growth"},
+  {"symbol": "STRF", "name": "Strategy Inc.", "group": "defensive"},
+  {"symbol": "VHY.AX", "name": "Vanguard Australian Shares High Yield ETF", "group": "defensive"},
+  {"symbol": "VAP.AX", "name": "Vanguard Australian Property Secs ETF", "group": "defensive"},
+  {"symbol": "VAF.AX", "name": "Vanguard Australian Fixed Interest ETF", "group": "defensive"}
+]
