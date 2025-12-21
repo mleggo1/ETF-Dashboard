@@ -53,7 +53,7 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
       };
 
   return (
-    <div className={`group relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-900/70 p-4 sm:p-5 ${cardStyles.shadow} transition ${cardStyles.hoverBorder} ${cardStyles.hoverShadow} min-h-[28rem]`}>
+    <div className={`group relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-900/70 p-4 sm:p-5 ${cardStyles.shadow} transition ${cardStyles.hoverBorder} ${cardStyles.hoverShadow} h-full`}>
       <div className={`pointer-events-none absolute inset-y-0 right-[-60px] w-52 rotate-12 rounded-full ${cardStyles.glowBg} blur-[100px] transition-all duration-700 group-hover:translate-x-6`} />
       <div className="relative flex items-start justify-between gap-3">
         <div>
@@ -92,7 +92,7 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
         </div>
       )}
       <div
-        className="relative flex-1 cursor-pointer min-h-[18rem]"
+        className="relative flex-1 cursor-pointer min-h-0"
         onClick={() => onChartClick && onChartClick(etf)}
         title="Click to view enlarged chart"
       >
