@@ -57,7 +57,14 @@
     "indexTracked": "Indxx Global Robotics & AI Thematic Index",
     "strategy": "Passive index tracking",
     "holdings": [
-      {"name": "Diversified Robotics & AI Companies", "weight": "Various"}
+      {"name": "Intuitive Surgical Inc.", "weight": "8.5%"},
+      {"name": "ABB Ltd", "weight": "7.2%"},
+      {"name": "Fanuc Corporation", "weight": "6.8%"},
+      {"name": "Keyence Corporation", "weight": "5.9%"},
+      {"name": "Yaskawa Electric Corporation", "weight": "5.1%"},
+      {"name": "Teradyne Inc.", "weight": "4.3%"},
+      {"name": "Cognex Corporation", "weight": "3.8%"},
+      {"name": "Rockwell Automation Inc.", "weight": "3.2%"}
     ],
     "mer": "0.57%",
     "dividendYield": "0.6%",
@@ -75,7 +82,14 @@
     "indexTracked": "BetaShares Crypto Innovators Index",
     "strategy": "Passive index tracking",
     "holdings": [
-      {"name": "Cryptocurrency & Blockchain Companies", "weight": "Various"}
+      {"name": "Coinbase Global Inc.", "weight": "12.5%"},
+      {"name": "MicroStrategy Inc.", "weight": "10.8%"},
+      {"name": "Riot Platforms Inc.", "weight": "8.2%"},
+      {"name": "Marathon Digital Holdings", "weight": "7.5%"},
+      {"name": "Hut 8 Mining Corp", "weight": "6.1%"},
+      {"name": "Hive Digital Technologies", "weight": "5.3%"},
+      {"name": "Bitfarms Ltd", "weight": "4.8%"},
+      {"name": "Core Scientific Inc.", "weight": "4.2%"}
     ],
     "mer": "0.99%",
     "dividendYield": "0%",
