@@ -60,24 +60,25 @@ export const PerformanceTable = () => {
   const displayPerformance = currentPerformance || cachedPerformance?.data || [];
   
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-900/70 shadow-[0_18px_45px_-25px_rgba(16,185,129,0.45)]">
-      <div className="bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-transparent px-4 sm:px-6 py-3 text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-emerald-100">
-        Historical Performance (Annualised)
+    <div className="overflow-hidden rounded-xl sm:rounded-2xl border border-slate-800/60 bg-slate-900/70 shadow-[0_18px_45px_-25px_rgba(16,185,129,0.45)]">
+      <div className="bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-transparent px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] sm:tracking-[0.3em] text-emerald-100">
+        <span className="block sm:inline">Historical Performance</span>
+        <span className="hidden sm:inline"> (Annualised)</span>
         {cachedPerformance?.timestamp && (
-          <span className="ml-2 text-[10px] sm:text-xs text-emerald-200/70 normal-case">
+          <span className="ml-1 sm:ml-2 text-[9px] sm:text-[10px] lg:text-xs text-emerald-200/70 normal-case block sm:inline mt-0.5 sm:mt-0">
             · Updated {cachedPerformance.timestamp}
           </span>
         )}
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-slate-200/90 min-w-[600px]">
-          <thead className="bg-slate-900/60 text-slate-300 uppercase tracking-[0.2em] text-[10px] sm:text-[11px]">
+      <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+        <table className="w-full text-xs sm:text-sm text-slate-200/90 min-w-[500px] sm:min-w-[600px]">
+          <thead className="bg-slate-900/60 text-slate-300 uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[9px] sm:text-[10px] lg:text-[11px]">
             <tr>
-              <th className="px-4 sm:px-6 py-3 text-left">ETF</th>
-              <th className="px-4 sm:px-6 py-3 text-right">1 YR</th>
-              <th className="px-4 sm:px-6 py-3 text-right">3 YRS</th>
-              <th className="px-4 sm:px-6 py-3 text-right">5 YRS</th>
-              <th className="px-4 sm:px-6 py-3 text-right">10 YRS</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left">ETF</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right">1 YR</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right">3 YRS</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right">5 YRS</th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right">10 YRS</th>
             </tr>
           </thead>
           <tbody>
@@ -110,17 +111,17 @@ export const PerformanceTable = () => {
                 
                 return (
                   <tr key={row.etf || index} className="odd:bg-slate-900/60 even:bg-slate-900/40">
-                    <td className="px-4 sm:px-6 py-3 text-sm sm:text-base font-medium text-slate-200">{row.etf}</td>
-                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y1)}`}>
+                    <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-xs sm:text-sm lg:text-base font-medium text-slate-200">{row.etf}</td>
+                    <td className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs sm:text-sm lg:text-base font-bold ${getValueClass(row.y1)}`}>
                       {formatValue(row.y1)}
                     </td>
-                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y3)}`}>
+                    <td className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs sm:text-sm lg:text-base font-bold ${getValueClass(row.y3)}`}>
                       {formatValue(row.y3)}
                     </td>
-                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y5)}`}>
+                    <td className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs sm:text-sm lg:text-base font-bold ${getValueClass(row.y5)}`}>
                       {formatValue(row.y5)}
                     </td>
-                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y10)}`}>
+                    <td className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs sm:text-sm lg:text-base font-bold ${getValueClass(row.y10)}`}>
                       {formatValue(row.y10)}
                     </td>
                   </tr>
@@ -136,7 +137,7 @@ export const PerformanceTable = () => {
           </tbody>
         </table>
       </div>
-      <p className="px-4 sm:px-6 py-3 text-[10px] sm:text-xs text-slate-400/80">
+      <p className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-[9px] sm:text-[10px] lg:text-xs text-slate-400/80">
         Note: Performance calculated from available historical data. Some ETFs may not have full 5/10-year history.
       </p>
     </div>
