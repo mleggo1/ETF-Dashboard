@@ -7,6 +7,48 @@ export const AppContext = createContext();
 const DATA_URL = "/data/etf-prices.json";
 const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 const SPLIT_THRESHOLD = 7; // detect >7x jumps as split indicators
+const CACHE_KEY = "etf-dashboard-cache";
+const CACHE_VERSION = "1.0";
+
+// localStorage utilities for persistent caching
+const loadCachedData = () => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    // Validate cache structure
+    if (parsed && parsed.data && typeof parsed.data === "object") {
+      return parsed;
+    }
+  } catch (error) {
+    console.warn("Failed to load cached data:", error);
+  }
+  return null;
+};
+
+const saveCachedData = (data, metadata) => {
+  const cache = {
+    version: CACHE_VERSION,
+    data: data,
+    lastUpdated: metadata.lastUpdated,
+    generatedAt: metadata.generatedAt,
+    dataAsAtDate: metadata.dataAsAtDate,
+    lastRefreshTimestamp: metadata.lastRefreshTimestamp,
+    cachedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    console.warn("Failed to save cached data:", error);
+    // If quota exceeded, try to clear old cache and retry
+    try {
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    } catch (retryError) {
+      console.error("Failed to save cached data after retry:", retryError);
+    }
+  }
+};
 
 const formatRefreshTimestamp = (date = new Date()) => {
   const day = String(date.getDate()).padStart(2, "0");
@@ -162,14 +204,16 @@ const fetchYahooSeries = async (symbol, signal) => {
 };
 
 export default function App() {
+  // Load cached data immediately on mount for instant display
+  const cachedData = loadCachedData();
   const [globalTimeframe, setGlobalTimeframe] = useState("YTD");
-  const [etfData, setEtfData] = useState({});
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [etfData, setEtfData] = useState(cachedData?.data || {});
+  const [lastUpdated, setLastUpdated] = useState(cachedData?.lastUpdated || null);
+  const [loading, setLoading] = useState(!cachedData); // Only show loading if no cache
   const [errors, setErrors] = useState({});
-  const [generatedAt, setGeneratedAt] = useState(null);
-  const [dataAsAtDate, setDataAsAtDate] = useState(null);
-  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(null);
+  const [generatedAt, setGeneratedAt] = useState(cachedData?.generatedAt || null);
+  const [dataAsAtDate, setDataAsAtDate] = useState(cachedData?.dataAsAtDate || null);
+  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(cachedData?.lastRefreshTimestamp || null);
 
   const loadData = useCallback(
     async ({ signal, allowFallback = true } = {}) => {
@@ -227,26 +271,39 @@ export default function App() {
           // Everything failed – fallback to bundled dataset
           const payload = await fetchFallbackDataset();
           if (signal?.aborted) return;
-          setEtfData(payload?.data || {});
-          setErrors(payload?.errors || {});
-          const fallbackTimestamp = payload?.generatedAt || payload?.lastUpdated || null;
-          setLastUpdated(payload?.lastUpdated || fallbackTimestamp);
-          setGeneratedAt(fallbackTimestamp);
-          // Try to find most recent price date from fallback data
-          let fallbackMostRecentDate = null;
-          if (payload?.data) {
-            Object.values(payload.data).forEach((etf) => {
-              if (etf?.prices && etf.prices.length > 0) {
-                const lastDate = etf.prices[etf.prices.length - 1].date;
-                if (!fallbackMostRecentDate || lastDate > fallbackMostRecentDate) {
-                  fallbackMostRecentDate = lastDate;
+            const fallbackData = payload?.data || {};
+            setEtfData(fallbackData);
+            setErrors(payload?.errors || {});
+            const fallbackTimestamp = payload?.generatedAt || payload?.lastUpdated || null;
+            setLastUpdated(payload?.lastUpdated || fallbackTimestamp);
+            setGeneratedAt(fallbackTimestamp);
+            // Try to find most recent price date from fallback data
+            let fallbackMostRecentDate = null;
+            if (payload?.data) {
+              Object.values(payload.data).forEach((etf) => {
+                if (etf?.prices && etf.prices.length > 0) {
+                  const lastDate = etf.prices[etf.prices.length - 1].date;
+                  if (!fallbackMostRecentDate || lastDate > fallbackMostRecentDate) {
+                    fallbackMostRecentDate = lastDate;
+                  }
                 }
-              }
-            });
-          }
-          setDataAsAtDate(fallbackMostRecentDate || fallbackTimestamp);
-          // Set initial refresh timestamp on first load
-          setLastRefreshTimestamp(formatRefreshTimestamp(new Date()));
+              });
+            }
+            setDataAsAtDate(fallbackMostRecentDate || fallbackTimestamp);
+            
+            // Set initial refresh timestamp on first load
+            const refreshTimestamp = formatRefreshTimestamp(new Date());
+            setLastRefreshTimestamp(refreshTimestamp);
+            
+            // Save to localStorage for instant load on next visit
+            if (Object.keys(fallbackData).length > 0) {
+              saveCachedData(fallbackData, {
+                lastUpdated: payload?.lastUpdated || fallbackTimestamp,
+                generatedAt: fallbackTimestamp,
+                dataAsAtDate: fallbackMostRecentDate || fallbackTimestamp,
+                lastRefreshTimestamp: refreshTimestamp,
+              });
+            }
         } else {
           let fallbackPayload = null;
           if (failedSymbols.length > 0 && allowFallback) {
@@ -291,7 +348,18 @@ export default function App() {
           setGeneratedAt(finalGeneratedAt);
           setDataAsAtDate(finalDataAsAtDate);
           // Set initial refresh timestamp on first load
-          setLastRefreshTimestamp(formatRefreshTimestamp(new Date()));
+          const refreshTimestamp = formatRefreshTimestamp(new Date());
+          setLastRefreshTimestamp(refreshTimestamp);
+          
+          // Save to localStorage for instant load on next visit
+          if (Object.keys(finalData).length > 0) {
+            saveCachedData(finalData, {
+              lastUpdated: finalLastUpdated,
+              generatedAt: finalGeneratedAt,
+              dataAsAtDate: finalDataAsAtDate,
+              lastRefreshTimestamp: refreshTimestamp,
+            });
+          }
         }
       } catch (err) {
         if (signal?.aborted) return;
@@ -319,6 +387,18 @@ export default function App() {
               });
             }
             setDataAsAtDate(fallbackMostRecentDate || fallbackTimestamp);
+            
+            // Save to localStorage for instant load on next visit
+            const errorFallbackData = payload?.data || {};
+            if (Object.keys(errorFallbackData).length > 0) {
+              const refreshTimestamp = formatRefreshTimestamp(new Date());
+              saveCachedData(errorFallbackData, {
+                lastUpdated: payload?.lastUpdated || fallbackTimestamp,
+                generatedAt: fallbackTimestamp,
+                dataAsAtDate: fallbackMostRecentDate || fallbackTimestamp,
+                lastRefreshTimestamp: refreshTimestamp,
+              });
+            }
           } catch (fallbackErr) {
             if (signal?.aborted) return;
             console.error(fallbackErr);
@@ -406,6 +486,16 @@ export default function App() {
       const refreshTimestamp = formatRefreshTimestamp(new Date());
       setLastRefreshTimestamp(refreshTimestamp);
       setGeneratedAt(new Date().toISOString());
+      
+      // Save to localStorage for instant load on next visit
+      if (Object.keys(nextData).length > 0) {
+        saveCachedData(nextData, {
+          lastUpdated: refreshDataAsAtDate,
+          generatedAt: new Date().toISOString(),
+          dataAsAtDate: refreshDataAsAtDate,
+          lastRefreshTimestamp: refreshTimestamp,
+        });
+      }
     } catch (err) {
       console.error(err);
       // Keep existing data on error
