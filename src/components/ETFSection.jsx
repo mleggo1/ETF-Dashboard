@@ -1,5 +1,6 @@
 import React from "react";
 import { ETFCard } from "./ETFCard";
+import { TimeframeToolbar } from "./TimeframeToolbar";
 
 export const ETFSection = ({ title, etfs, onChartClick }) => {
   const isGrowth = title.toLowerCase() === "growth";
@@ -26,39 +27,44 @@ export const ETFSection = ({ title, etfs, onChartClick }) => {
 
   return (
     <section className="space-y-3 sm:space-y-4">
-      <div className={`relative overflow-hidden rounded-xl border-2 ${sectionStyles.borderColor} bg-gradient-to-r ${sectionStyles.bgGradient} ${sectionStyles.glowColor} backdrop-blur-sm`}>
+      <div className={`relative overflow-hidden rounded-lg border-2 ${sectionStyles.borderColor} bg-gradient-to-r ${sectionStyles.bgGradient} ${sectionStyles.glowColor} backdrop-blur-sm`}>
         {/* Animated background glow */}
         <div className={`absolute inset-0 ${sectionStyles.accentBg} opacity-50 blur-3xl animate-pulse`} />
         
         {/* Content */}
-        <div className="relative px-4 sm:px-6 py-3 sm:py-4">
+        <div className="relative px-3 sm:px-4 py-2 sm:py-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {/* Icon */}
-              <div className={`text-2xl sm:text-3xl filter drop-shadow-lg ${isGrowth ? "animate-bounce" : ""}`} style={{ animationDuration: "3s" }}>
+              <div className={`text-xl sm:text-2xl filter drop-shadow-lg ${isGrowth ? "animate-bounce" : ""}`} style={{ animationDuration: "3s" }}>
                 {sectionStyles.icon}
               </div>
               
               {/* Title */}
               <div>
-                <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.4em] text-slate-400/80 mb-0.5">
+                <div className="text-[8px] sm:text-[9px] uppercase tracking-[0.3em] text-slate-400/70 mb-0.5">
                   {isGrowth ? "HIGH GROWTH POTENTIAL" : "STABLE & PROTECTIVE"}
                 </div>
-                <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-black uppercase tracking-[0.15em] ${sectionStyles.textColor} drop-shadow-lg leading-tight`}>
+                <h2 className={`text-lg sm:text-xl lg:text-2xl font-black uppercase tracking-[0.1em] ${sectionStyles.textColor} drop-shadow-lg leading-tight`}>
                   {title}
                 </h2>
               </div>
             </div>
             
             {/* Badge */}
-            <div className={`hidden sm:flex items-center justify-center w-12 h-12 rounded-full ${sectionStyles.accentBg} border-2 ${sectionStyles.borderColor} ${sectionStyles.glowColor}`}>
-              <span className="text-xl">{sectionStyles.icon}</span>
+            <div className={`hidden sm:flex items-center justify-center w-10 h-10 rounded-full ${sectionStyles.accentBg} border-2 ${sectionStyles.borderColor} ${sectionStyles.glowColor}`}>
+              <span className="text-lg">{sectionStyles.icon}</span>
             </div>
           </div>
           
           {/* Decorative line */}
-          <div className={`mt-2.5 sm:mt-3 h-0.5 rounded-full bg-gradient-to-r ${isGrowth ? "from-emerald-400 via-teal-400 to-emerald-400" : "from-blue-400 via-indigo-400 to-blue-400"} ${sectionStyles.glowColor}`} />
+          <div className={`mt-2 h-0.5 rounded-full bg-gradient-to-r ${isGrowth ? "from-emerald-400 via-teal-400 to-emerald-400" : "from-blue-400 via-indigo-400 to-blue-400"} ${sectionStyles.glowColor}`} />
         </div>
+      </div>
+      
+      {/* Timeframe toolbar underneath */}
+      <div className="flex justify-center -mx-2 sm:mx-0">
+        <TimeframeToolbar />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">

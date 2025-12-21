@@ -30,15 +30,29 @@ export const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
-      <header className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800/60 bg-slate-900/70 px-4 sm:px-6 py-6 sm:py-8 shadow-[0_25px_60px_-35px_rgba(15,118,110,0.75)] backdrop-blur">
+      <header className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800/60 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950/95 px-4 sm:px-6 py-8 sm:py-12 shadow-[0_25px_60px_-35px_rgba(15,118,110,0.75)] backdrop-blur">
+        {/* Enhanced background effects */}
         <div className="absolute inset-y-0 right-[-120px] w-[320px] rounded-full bg-emerald-500/30 blur-[120px]" />
-        <div className="relative flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-emerald-300/70">Wealth Engine Insights</p>
-            <h1 className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-white md:text-4xl">
-              ETF Growth vs Defensive Dashboard
+        <div className="absolute inset-y-0 left-[-80px] w-[240px] rounded-full bg-blue-500/20 blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-blue-500/20 blur-[140px]" />
+        
+        <div className="relative flex flex-col gap-6 sm:gap-8 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.5em] text-emerald-300/60 mb-3">Wealth Engine Insights</p>
+            <h1 className="relative">
+              <span className="absolute -top-2 -left-2 text-6xl sm:text-7xl font-black text-emerald-500/10 select-none pointer-events-none">
+                ETF
+              </span>
+              <div className="relative">
+                <span className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]">
+                  ETF Growth vs Defensive
+                </span>
+                <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white/90 mt-1">
+                  Dashboard
+                </span>
+              </div>
             </h1>
-            <p className="mt-2 sm:mt-3 max-w-2xl text-xs sm:text-sm text-slate-300">
+            <p className="mt-4 sm:mt-5 max-w-2xl text-sm sm:text-base text-slate-300/90 leading-relaxed">
               Compare performance, switch time horizons, and stay across the latest market signals in one cohesive
               workspace.
             </p>
@@ -57,22 +71,6 @@ export const Dashboard = () => {
           </div>
         </div>
       </header>
-      <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-        <TimeframeToolbar />
-      </div>
-      
-      {/* Visual separator with label */}
-      <div className="relative my-6 sm:my-8">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-700/50"></div>
-        </div>
-        <div className="relative flex justify-center">
-          <span className="px-4 py-1 text-xs uppercase tracking-[0.5em] text-slate-500 bg-slate-950 rounded-full border border-slate-800">
-            Portfolio Categories
-          </span>
-        </div>
-      </div>
-      
       <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
         <ETFSection title="Growth" etfs={growth} onChartClick={handleChartClick} />
         <ETFSection title="Defensive" etfs={defensive} onChartClick={handleChartClick} />
