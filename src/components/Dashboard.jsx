@@ -60,7 +60,20 @@ export const Dashboard = () => {
       <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
         <TimeframeToolbar />
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      
+      {/* Visual separator with label */}
+      <div className="relative my-6 sm:my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-700/50"></div>
+        </div>
+        <div className="relative flex justify-center">
+          <span className="px-4 py-1 text-xs uppercase tracking-[0.5em] text-slate-500 bg-slate-950 rounded-full border border-slate-800">
+            Portfolio Categories
+          </span>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
         <ETFSection title="Growth" etfs={growth} onChartClick={handleChartClick} />
         <ETFSection title="Defensive" etfs={defensive} onChartClick={handleChartClick} />
       </div>
