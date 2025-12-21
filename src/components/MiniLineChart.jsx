@@ -98,15 +98,15 @@ export const MiniLineChart = ({ timeframe, data }) => {
   );
 
   return (
-    <div className="flex flex-col h-full min-h-[18rem]">
+    <div className="flex flex-col h-full min-h-[18rem] max-h-[20rem]">
       <div className="mb-1 flex items-center justify-between text-xs text-slate-300">
         <span>{timeframe}</span>
         <span className={pct >= 0 ? "text-emerald-500" : "text-red-500"}>
           {pct ? `${pct}%` : ""}
         </span>
       </div>
-      <div className="flex-1">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="flex-1 min-h-[14rem]">
+        <ResponsiveContainer width="100%" height="100%" minHeight={224}>
           <LineChart data={filtered} margin={{ top: 6, right: 6, bottom: 24, left: 6 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">

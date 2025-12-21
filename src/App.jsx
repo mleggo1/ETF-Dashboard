@@ -206,14 +206,80 @@ const fetchYahooSeries = async (symbol, signal) => {
 export default function App() {
   // Load cached data immediately on mount for instant display
   const cachedData = loadCachedData();
+  
+  // For first-time visitors, try to load fallback dataset immediately
+  const [initialFallbackData, setInitialFallbackData] = useState(null);
+  
+  useEffect(() => {
+    // If no cache exists, immediately try to load fallback dataset
+    if (!cachedData && !initialFallbackData) {
+      fetch(DATA_URL)
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error(`Failed to load dataset (${res.status})`);
+        })
+        .then((payload) => {
+          if (payload?.data) {
+            setInitialFallbackData(payload);
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to preload fallback dataset:", err);
+        });
+    }
+  }, [cachedData, initialFallbackData]);
+  
+  // Use cached data, or initial fallback data, or empty
+  const initialData = cachedData?.data || initialFallbackData?.data || {};
+  const initialLastUpdated = cachedData?.lastUpdated || initialFallbackData?.lastUpdated || null;
+  const initialGeneratedAt = cachedData?.generatedAt || initialFallbackData?.generatedAt || null;
+  const initialDataAsAtDate = cachedData?.dataAsAtDate || null;
+  const initialRefreshTimestamp = cachedData?.lastRefreshTimestamp || null;
+  
   const [globalTimeframe, setGlobalTimeframe] = useState("YTD");
-  const [etfData, setEtfData] = useState(cachedData?.data || {});
-  const [lastUpdated, setLastUpdated] = useState(cachedData?.lastUpdated || null);
-  const [loading, setLoading] = useState(!cachedData); // Only show loading if no cache
+  const [etfData, setEtfData] = useState(initialData);
+  const [lastUpdated, setLastUpdated] = useState(initialLastUpdated);
+  const [loading, setLoading] = useState(!cachedData && !initialFallbackData); // Only show loading if no cache and no fallback
   const [errors, setErrors] = useState({});
-  const [generatedAt, setGeneratedAt] = useState(cachedData?.generatedAt || null);
-  const [dataAsAtDate, setDataAsAtDate] = useState(cachedData?.dataAsAtDate || null);
-  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(cachedData?.lastRefreshTimestamp || null);
+  const [generatedAt, setGeneratedAt] = useState(initialGeneratedAt);
+  const [dataAsAtDate, setDataAsAtDate] = useState(initialDataAsAtDate);
+  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(initialRefreshTimestamp);
+  
+  // Update state when initial fallback data loads
+  useEffect(() => {
+    if (initialFallbackData && !cachedData) {
+      setEtfData(initialFallbackData.data || {});
+      setLastUpdated(initialFallbackData.lastUpdated || initialFallbackData.generatedAt || null);
+      setGeneratedAt(initialFallbackData.generatedAt || null);
+      setLoading(false);
+      
+      // Find most recent price date
+      let mostRecentDate = null;
+      if (initialFallbackData.data) {
+        Object.values(initialFallbackData.data).forEach((etf) => {
+          if (etf?.prices && etf.prices.length > 0) {
+            const lastDate = etf.prices[etf.prices.length - 1].date;
+            if (!mostRecentDate || lastDate > mostRecentDate) {
+              mostRecentDate = lastDate;
+            }
+          }
+        });
+      }
+      setDataAsAtDate(mostRecentDate || initialFallbackData.generatedAt || null);
+      
+      // Save to cache for next time
+      if (Object.keys(initialFallbackData.data || {}).length > 0) {
+        const refreshTimestamp = formatRefreshTimestamp(new Date());
+        setLastRefreshTimestamp(refreshTimestamp);
+        saveCachedData(initialFallbackData.data, {
+          lastUpdated: initialFallbackData.lastUpdated || initialFallbackData.generatedAt || null,
+          generatedAt: initialFallbackData.generatedAt || null,
+          dataAsAtDate: mostRecentDate || initialFallbackData.generatedAt || null,
+          lastRefreshTimestamp: refreshTimestamp,
+        });
+      }
+    }
+  }, [initialFallbackData, cachedData]);
 
   const loadData = useCallback(
     async ({ signal, allowFallback = true } = {}) => {

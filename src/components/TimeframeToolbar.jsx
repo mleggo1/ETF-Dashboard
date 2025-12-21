@@ -13,7 +13,7 @@ export const TimeframeToolbar = () => {
           key={opt}
           onClick={() => setGlobalTimeframe(opt)}
           className={
-            "rounded-full px-4 py-2 text-sm font-semibold transition " +
+            "rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition whitespace-nowrap " +
             (globalTimeframe === opt
               ? "bg-emerald-400 text-slate-950 shadow shadow-emerald-500/50"
               : "text-slate-300 hover:bg-slate-800/70")
