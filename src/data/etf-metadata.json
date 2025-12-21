@@ -15,12 +15,12 @@
       {"name": "Berkshire Hathaway Inc.", "weight": "1.7%"}
     ],
     "mer": "0.04%",
-    "dividendYield": "1.4%",
+    "dividendYield": "1.3%",
     "distributionFrequency": "Quarterly",
     "performance": {
       "1Y": "20%",
       "3Y": "14%",
-      "5Y": "17%",
+      "5Y": "10.8%",
       "10Y": "15%"
     },
     "goodFor": "Long-term growth investors seeking broad US market exposure with low fees. Ideal for building core portfolio holdings."
@@ -41,71 +41,76 @@
       {"name": "Broadcom Inc.", "weight": "2.2%"}
     ],
     "mer": "0.48%",
-    "dividendYield": "0.8%",
+    "dividendYield": "0.9%",
     "distributionFrequency": "Quarterly",
     "performance": {
       "1Y": "24%",
       "3Y": "26%",
-      "5Y": "17%",
+      "5Y": "13.5%",
       "10Y": "20%"
     },
     "goodFor": "Investors seeking concentrated exposure to US technology and growth companies. Higher volatility but strong long-term growth potential."
   },
-  "EBTC.XA": {
-    "description": "Provides direct exposure to Bitcoin through a physically-backed ETF structure, tracking Bitcoin's price movements.",
-    "category": "Cryptocurrency",
-    "indexTracked": "Bitcoin Spot Price",
-    "strategy": "Physical Bitcoin backing",
+  "RBTZ.AX": {
+    "description": "Provides exposure to global companies involved in robotics, automation, and artificial intelligence technologies.",
+    "category": "Automation",
+    "indexTracked": "Indxx Global Robotics & AI Thematic Index",
+    "strategy": "Passive index tracking",
     "holdings": [
-      {"name": "Bitcoin (BTC)", "weight": "~99.5%"},
-      {"name": "Cash & Equivalents", "weight": "~0.5%"}
+      {"name": "Diversified Robotics & AI Companies", "weight": "Various"}
     ],
-    "mer": "0.99%",
-    "dividendYield": "N/A",
-    "distributionFrequency": "N/A",
+    "mer": "0.57%",
+    "dividendYield": "0.6%",
+    "distributionFrequency": "Quarterly",
     "performance": {
-      "1Y": "89%",
-      "3Y": "81%",
-      "5Y": "—"
-    },
-    "goodFor": "Investors seeking cryptocurrency exposure through a regulated, exchange-traded structure. High volatility asset class."
-  },
-  "EETH.XA": {
-    "description": "Provides direct exposure to Ethereum through a physically-backed ETF structure, tracking Ethereum's price movements.",
-    "category": "Cryptocurrency",
-    "indexTracked": "Ethereum Spot Price",
-    "strategy": "Physical Ethereum backing",
-    "holdings": [
-      {"name": "Ethereum (ETH)", "weight": "~99.5%"},
-      {"name": "Cash & Equivalents", "weight": "~0.5%"}
-    ],
-    "mer": "0.99%",
-    "dividendYield": "N/A",
-    "distributionFrequency": "N/A",
-    "performance": {
-      "1Y": "90%",
-      "3Y": "48%",
-      "5Y": "—"
-    },
-    "goodFor": "Investors seeking Ethereum exposure through a regulated ETF structure. Suitable for those comfortable with high cryptocurrency volatility."
-  },
-  "STRF": {
-    "description": "Strategy Inc. focuses on strategic investment opportunities across various asset classes and market segments.",
-    "category": "Multi-Asset",
-    "indexTracked": "Custom Strategy",
-    "strategy": "Active management",
-    "holdings": [
-      {"name": "Diversified Holdings", "weight": "Various"}
-    ],
-    "mer": "—",
-    "dividendYield": "—",
-    "distributionFrequency": "—",
-    "performance": {
-      "1Y": "20%",
+      "1Y": "—",
       "3Y": "—",
-      "5Y": "—"
+      "5Y": "12.5%"
     },
-    "goodFor": "Investors seeking actively managed exposure with strategic allocation across multiple asset classes."
+    "goodFor": "Investors seeking exposure to the automation and robotics revolution. Higher volatility but strong growth potential in transformative technologies."
+  },
+  "CRYP.AX": {
+    "description": "Provides exposure to companies involved in cryptocurrency, blockchain technology, and digital asset infrastructure.",
+    "category": "Crypto & Blockchain",
+    "indexTracked": "BetaShares Crypto Innovators Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Cryptocurrency & Blockchain Companies", "weight": "Various"}
+    ],
+    "mer": "0.99%",
+    "dividendYield": "0%",
+    "distributionFrequency": "N/A",
+    "performance": {
+      "1Y": "—",
+      "3Y": "—",
+      "5Y": "23%"
+    },
+    "goodFor": "Investors seeking exposure to the cryptocurrency and blockchain ecosystem through equity holdings. Very high volatility - speculative asset class."
+  },
+  "IOO.AX": {
+    "description": "Provides exposure to 100 of the world's largest blue-chip companies across developed markets, offering diversified global equity exposure.",
+    "category": "Global Blue-Chip",
+    "indexTracked": "S&P Global 100 Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Apple Inc.", "weight": "~5.2%"},
+      {"name": "Microsoft Corporation", "weight": "~4.8%"},
+      {"name": "Amazon.com Inc.", "weight": "~3.1%"},
+      {"name": "Alphabet Inc.", "weight": "~2.9%"},
+      {"name": "NVIDIA Corporation", "weight": "~2.5%"},
+      {"name": "Meta Platforms Inc.", "weight": "~2.3%"},
+      {"name": "Tesla Inc.", "weight": "~2.0%"},
+      {"name": "Other Global Blue-Chips", "weight": "~75.2%"}
+    ],
+    "mer": "0.40%",
+    "dividendYield": "2.1%",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "—",
+      "3Y": "—",
+      "5Y": "9.5%"
+    },
+    "goodFor": "Investors seeking core global equity exposure through established, large-cap companies. Balanced approach to international diversification with moderate volatility."
   },
   "VHY.AX": {
     "description": "Focuses on Australian companies with high dividend yields, providing income-focused exposure to the Australian equity market.",
@@ -123,7 +128,7 @@
       {"name": "Woodside Energy Group Ltd", "weight": "3.5%"}
     ],
     "mer": "0.25%",
-    "dividendYield": "4.8%",
+    "dividendYield": "4.5%",
     "distributionFrequency": "Quarterly",
     "performance": {
       "1Y": "18%",
@@ -149,7 +154,7 @@
       {"name": "Vicinity Centres", "weight": "4.8%"}
     ],
     "mer": "0.23%",
-    "dividendYield": "4.2%",
+    "dividendYield": "4.5%",
     "distributionFrequency": "Quarterly",
     "performance": {
       "1Y": "16%",
@@ -169,7 +174,7 @@
       {"name": "Corporate Bonds", "weight": "~30%"}
     ],
     "mer": "0.20%",
-    "dividendYield": "3.2%",
+    "dividendYield": "2.8%",
     "distributionFrequency": "Monthly",
     "performance": {
       "1Y": "4%",
