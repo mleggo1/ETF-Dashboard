@@ -70,6 +70,19 @@ const formatCurrency = (value, currency) => {
   }
 };
 
+const formatCurrencyNoCents = (value, currency) => {
+  if (value === undefined || value === null) return "";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "AUD",
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `$${Math.round(value)}`;
+  }
+};
+
 export const EnlargedChart = ({ timeframe, data, group }) => {
   const isDefensive = group === "defensive";
   
@@ -196,7 +209,7 @@ export const EnlargedChart = ({ timeframe, data, group }) => {
           />
           <YAxis
             domain={["auto", "auto"]}
-            tickFormatter={(value) => formatCurrency(value, data.currency)}
+            tickFormatter={(value) => formatCurrencyNoCents(value, data.currency)}
             tick={{ fontSize: 12, fill: "#94a3b8" }}
             stroke="#475569"
             axisLine={{ stroke: "#475569" }}

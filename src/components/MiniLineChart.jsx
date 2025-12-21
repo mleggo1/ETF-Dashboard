@@ -53,6 +53,19 @@ const formatCurrency = (value, currency) => {
   }
 };
 
+const formatCurrencyNoCents = (value, currency) => {
+  if (value === undefined || value === null) return "";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "AUD",
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `$${Math.round(value)}`;
+  }
+};
+
 const formatDateLabel = (dateString, timeframe) => {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
@@ -157,7 +170,7 @@ export const MiniLineChart = ({ timeframe, data, group }) => {
             />
             <YAxis
               domain={["auto", "auto"]}
-              tickFormatter={(value) => formatCurrency(value, data.currency)}
+              tickFormatter={(value) => formatCurrencyNoCents(value, data.currency)}
               tick={{ fontSize: 11, fill: "#cbd5f5" }}
               stroke="#1f2937"
               axisLine={false}
