@@ -71,7 +71,7 @@ const formatDateLabel = (dateString, timeframe) => {
   }
 };
 
-export const MiniLineChart = ({ timeframe, data }) => {
+export const MiniLineChart = ({ timeframe, data, group }) => {
   if (!data) {
     return <div className="text-xs text-slate-400">Loading chart...</div>;
   }
@@ -92,6 +92,31 @@ export const MiniLineChart = ({ timeframe, data }) => {
       ? (((last.close - first.close) / first.close) * 100).toFixed(2)
       : null;
 
+  const isDefensive = group === "defensive";
+  
+  // Color scheme: Blue for defensive, Green for growth
+  const chartColors = isDefensive
+    ? {
+        gradientStart: "#60a5fa", // blue-400
+        gradientEnd: "#3b82f6", // blue-500
+        gradientStartOpacity: 0.95,
+        gradientEndOpacity: 0.3,
+        activeDot: "#60a5fa",
+        percentagePositive: "text-blue-400",
+        tooltipBorder: "rgba(96,165,250,0.35)", // blue-400
+        tooltipShadow: "rgba(59,130,246,0.25)", // blue-500
+      }
+    : {
+        gradientStart: "#34d399", // emerald-400
+        gradientEnd: "#34d399", // emerald-400
+        gradientStartOpacity: 0.95,
+        gradientEndOpacity: 0.3,
+        activeDot: "#34d399",
+        percentagePositive: "text-emerald-500",
+        tooltipBorder: "rgba(110,231,183,0.35)", // emerald-400
+        tooltipShadow: "rgba(16,185,129,0.25)", // emerald-500
+      };
+
   const gradientId = React.useMemo(
     () => `lineGradient-${data?.symbol?.replace(/[^a-zA-Z0-9]/g, "") ?? "default"}`,
     [data?.symbol]
@@ -101,7 +126,7 @@ export const MiniLineChart = ({ timeframe, data }) => {
     <div className="flex flex-col h-full min-h-[18rem] max-h-[20rem]">
       <div className="mb-1 flex items-center justify-between text-xs text-slate-300">
         <span>{timeframe}</span>
-        <span className={pct >= 0 ? "text-emerald-500" : "text-red-500"}>
+        <span className={pct >= 0 ? chartColors.percentagePositive : "text-red-500"}>
           {pct ? `${pct}%` : ""}
         </span>
       </div>
@@ -110,8 +135,8 @@ export const MiniLineChart = ({ timeframe, data }) => {
           <LineChart data={filtered} margin={{ top: 6, right: 6, bottom: 24, left: 6 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#34d399" stopOpacity={0.95} />
-                <stop offset="100%" stopColor="#34d399" stopOpacity={0.3} />
+                <stop offset="0%" stopColor={chartColors.gradientStart} stopOpacity={chartColors.gradientStartOpacity} />
+                <stop offset="100%" stopColor={chartColors.gradientEnd} stopOpacity={chartColors.gradientEndOpacity} />
               </linearGradient>
             </defs>
             <XAxis
@@ -146,13 +171,13 @@ export const MiniLineChart = ({ timeframe, data }) => {
               labelFormatter={(l) => `Date: ${l}`}
               contentStyle={{
                 backgroundColor: "rgba(15,23,42,0.95)",
-                border: "1px solid rgba(110,231,183,0.35)",
+                border: `1px solid ${chartColors.tooltipBorder}`,
                 borderRadius: 12,
                 color: "#e2e8f0",
-                boxShadow: "0 12px 30px rgba(16,185,129,0.25)",
+                boxShadow: `0 12px 30px ${chartColors.tooltipShadow}`,
               }}
               itemStyle={{ color: "#e2e8f0" }}
-              labelStyle={{ color: "#bbf7d0" }}
+              labelStyle={{ color: isDefensive ? "#bfdbfe" : "#bbf7d0" }}
             />
             <Line
               type="monotone"
@@ -160,7 +185,7 @@ export const MiniLineChart = ({ timeframe, data }) => {
               stroke={`url(#${gradientId})`}
               dot={false}
               strokeWidth={2.5}
-              activeDot={{ r: 4, strokeWidth: 0, fill: "#34d399" }}
+              activeDot={{ r: 4, strokeWidth: 0, fill: chartColors.activeDot }}
             />
           </LineChart>
         </ResponsiveContainer>

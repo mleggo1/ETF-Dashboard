@@ -9,6 +9,7 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
   const [localTimeframe, setLocalTimeframe] = useState("1Y");
   const data = etfData[etf?.symbol];
   const metadata = etfMetadata[etf?.symbol];
+  const isDefensive = etf?.group === "defensive";
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -91,7 +92,9 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
                         className={
                           "px-3 py-1.5 text-xs font-medium rounded-full transition " +
                           (localTimeframe === tf
-                            ? "bg-emerald-500/20 text-emerald-200 border border-emerald-400/60"
+                            ? isDefensive
+                              ? "bg-blue-500/20 text-blue-200 border border-blue-400/60"
+                              : "bg-emerald-500/20 text-emerald-200 border border-emerald-400/60"
                             : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60")
                         }
                       >
@@ -102,7 +105,7 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
                 </div>
               </div>
               <div className="flex-1 p-6 overflow-auto">
-                <EnlargedChart timeframe={localTimeframe} data={data} />
+                <EnlargedChart timeframe={localTimeframe} data={data} group={etf.group} />
               </div>
             </div>
 

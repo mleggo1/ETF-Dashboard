@@ -63,7 +63,7 @@ export const ETFSection = ({ title, etfs, onChartClick }) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-stretch">
         {etfs.map((etf) => (
-          <ETFCard key={etf.symbol} etf={etf} onChartClick={onChartClick} />
+          <ETFCard key={etf.symbol} etf={etf} onChartClick={onChartClick} group={etf.group} />
         ))}
       </div>
     </section>

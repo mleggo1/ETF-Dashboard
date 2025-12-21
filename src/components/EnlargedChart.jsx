@@ -70,7 +70,32 @@ const formatCurrency = (value, currency) => {
   }
 };
 
-export const EnlargedChart = ({ timeframe, data }) => {
+export const EnlargedChart = ({ timeframe, data, group }) => {
+  const isDefensive = group === "defensive";
+  
+  // Color scheme: Blue for defensive, Green for growth
+  const chartColors = isDefensive
+    ? {
+        gradientStart: "#60a5fa", // blue-400
+        gradientEnd: "#3b82f6", // blue-500
+        gradientStartOpacity: 0.8,
+        gradientEndOpacity: 0.1,
+        activeDot: "#60a5fa",
+        percentagePositive: "text-blue-400",
+        tooltipBorder: "rgba(96,165,250,0.3)", // blue-400
+        loadingSpinner: "border-blue-400",
+      }
+    : {
+        gradientStart: "#34d399", // emerald-400
+        gradientEnd: "#34d399", // emerald-400
+        gradientStartOpacity: 0.8,
+        gradientEndOpacity: 0.1,
+        activeDot: "#34d399",
+        percentagePositive: "text-emerald-400",
+        tooltipBorder: "rgba(110,231,183,0.3)", // emerald-400
+        loadingSpinner: "border-emerald-400",
+      };
+
   const gradientId = useMemo(
     () => `enlargedGradient-${data?.symbol?.replace(/[^a-zA-Z0-9]/g, "") ?? "default"}`,
     [data?.symbol]
@@ -80,7 +105,7 @@ export const EnlargedChart = ({ timeframe, data }) => {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-emerald-400 border-r-transparent"></div>
+          <div className={`inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid ${chartColors.loadingSpinner} border-r-transparent`}></div>
           <p className="mt-4 text-sm text-slate-400">Loading chart...</p>
         </div>
       </div>
@@ -124,13 +149,13 @@ export const EnlargedChart = ({ timeframe, data }) => {
         : null;
 
       return (
-        <div className="rounded-lg border border-emerald-400/30 bg-slate-900/95 p-3 shadow-lg backdrop-blur">
+        <div className={`rounded-lg border ${chartColors.tooltipBorder} bg-slate-900/95 p-3 shadow-lg backdrop-blur`} style={{ borderColor: chartColors.tooltipBorder }}>
           <p className="text-xs text-slate-400 mb-1">{label}</p>
           <p className="text-sm font-semibold text-white mb-1">
             {formatCurrency(value, data.currency)}
           </p>
           {periodReturn !== null && (
-            <p className={`text-xs ${periodReturn >= 0 ? "text-emerald-300" : "text-red-400"}`}>
+            <p className={`text-xs ${periodReturn >= 0 ? chartColors.percentagePositive : "text-red-400"}`}>
               {periodReturn >= 0 ? "+" : ""}{periodReturn}% since period start
             </p>
           )}
@@ -145,7 +170,7 @@ export const EnlargedChart = ({ timeframe, data }) => {
       <div className="mb-4 flex items-center justify-between">
         <div className="text-sm text-slate-300">
           <span className="text-slate-400">Period return: </span>
-          <span className={cumulativeReturn >= 0 ? "text-emerald-400" : "text-rose-400"}>
+          <span className={cumulativeReturn >= 0 ? chartColors.percentagePositive : "text-rose-400"}>
             {cumulativeReturn !== null ? `${cumulativeReturn >= 0 ? "+" : ""}${cumulativeReturn}%` : "—"}
           </span>
         </div>
@@ -154,8 +179,8 @@ export const EnlargedChart = ({ timeframe, data }) => {
         <LineChart data={filtered} margin={{ top: 20, right: 30, bottom: 60, left: 20 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#34d399" stopOpacity={0.8} />
-              <stop offset="100%" stopColor="#34d399" stopOpacity={0.1} />
+              <stop offset="0%" stopColor={chartColors.gradientStart} stopOpacity={chartColors.gradientStartOpacity} />
+              <stop offset="100%" stopColor={chartColors.gradientEnd} stopOpacity={chartColors.gradientEndOpacity} />
             </linearGradient>
           </defs>
           <XAxis
@@ -185,7 +210,7 @@ export const EnlargedChart = ({ timeframe, data }) => {
             stroke={`url(#${gradientId})`}
             strokeWidth={3}
             dot={false}
-            activeDot={{ r: 6, strokeWidth: 0, fill: "#34d399" }}
+            activeDot={{ r: 6, strokeWidth: 0, fill: chartColors.activeDot }}
           />
         </LineChart>
       </ResponsiveContainer>
