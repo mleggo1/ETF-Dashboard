@@ -3,8 +3,11 @@
   {"symbol": "NDQ.AX", "name": "BetaShares NASDAQ 100 ETF", "group": "growth"},
   {"symbol": "RBTZ.AX", "name": "BetaShares Global Robotics ETF", "group": "growth"},
   {"symbol": "CRYP.AX", "name": "BetaShares Crypto Innovators ETF", "group": "growth"},
+  {"symbol": "EBTC.XA", "name": "21Shares Bitcoin ETF", "group": "growth"},
+  {"symbol": "EETH.XA", "name": "Global X 21Shares Ethereum ETF", "group": "growth"},
   {"symbol": "VHY.AX", "name": "Vanguard High Yield ETF", "group": "defensive"},
   {"symbol": "VAP.AX", "name": "Vanguard Australian Property Secs ETF", "group": "defensive"},
   {"symbol": "IOO.AX", "name": "iShares Global 100 ETF", "group": "defensive"},
-  {"symbol": "VAF.AX", "name": "Vanguard Aus Fixed Interest", "group": "defensive"}
+  {"symbol": "VAF.AX", "name": "Vanguard Aus Fixed Interest", "group": "defensive"},
+  {"symbol": "STRF", "name": "MicroStrategy Capital II", "group": "defensive"}
 ]

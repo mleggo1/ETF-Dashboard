@@ -183,6 +183,62 @@
       "10Y": "2%"
     },
     "goodFor": "Conservative investors seeking stable income with lower volatility. Ideal for portfolio diversification and capital preservation. Suitable for those nearing or in retirement."
+  },
+  "EBTC.XA": {
+    "description": "Provides direct exposure to Bitcoin through a physically-backed ETF structure, tracking Bitcoin's price movements.",
+    "category": "Cryptocurrency",
+    "indexTracked": "Bitcoin Spot Price",
+    "strategy": "Physical Bitcoin backing",
+    "holdings": [
+      {"name": "Bitcoin (BTC)", "weight": "~99.5%"},
+      {"name": "Cash & Equivalents", "weight": "~0.5%"}
+    ],
+    "mer": "0.99%",
+    "dividendYield": "N/A",
+    "distributionFrequency": "N/A",
+    "performance": {
+      "1Y": "89%",
+      "3Y": "81%",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking cryptocurrency exposure through a regulated, exchange-traded structure. High volatility asset class."
+  },
+  "EETH.XA": {
+    "description": "Provides direct exposure to Ethereum through a physically-backed ETF structure, tracking Ethereum's price movements.",
+    "category": "Cryptocurrency",
+    "indexTracked": "Ethereum Spot Price",
+    "strategy": "Physical Ethereum backing",
+    "holdings": [
+      {"name": "Ethereum (ETH)", "weight": "~99.5%"},
+      {"name": "Cash & Equivalents", "weight": "~0.5%"}
+    ],
+    "mer": "0.99%",
+    "dividendYield": "N/A",
+    "distributionFrequency": "N/A",
+    "performance": {
+      "1Y": "90%",
+      "3Y": "48%",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking Ethereum exposure through a regulated ETF structure. Suitable for those comfortable with high cryptocurrency volatility."
+  },
+  "STRF": {
+    "description": "MicroStrategy Capital II provides strategic investment exposure with a focus on technology and digital assets through MicroStrategy's corporate strategy.",
+    "category": "Multi-Asset",
+    "indexTracked": "Custom Strategy",
+    "strategy": "Active management",
+    "holdings": [
+      {"name": "Diversified Holdings", "weight": "Various"}
+    ],
+    "mer": "—",
+    "dividendYield": "—",
+    "distributionFrequency": "—",
+    "performance": {
+      "1Y": "20%",
+      "3Y": "—",
+      "5Y": "—"
+    },
+    "goodFor": "Investors seeking exposure to MicroStrategy's strategic approach to digital assets and technology investments."
   }
 }
 
