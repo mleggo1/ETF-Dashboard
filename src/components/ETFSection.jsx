@@ -77,4 +77,3 @@ export const ETFSection = ({ title, etfs, onChartClick }) => {
     </section>
   );
 };
-};
