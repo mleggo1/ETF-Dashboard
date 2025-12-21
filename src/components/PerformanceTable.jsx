@@ -82,15 +82,50 @@ export const PerformanceTable = () => {
           </thead>
           <tbody>
             {displayPerformance.length > 0 ? (
-              displayPerformance.map((row, index) => (
-                <tr key={row.etf || index} className="odd:bg-slate-900/60 even:bg-slate-900/40">
-                  <td className="px-4 sm:px-6 py-3 text-sm sm:text-base font-medium text-slate-200">{row.etf}</td>
-                  <td className="px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold text-emerald-300">{row.y1}</td>
-                  <td className="px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold text-emerald-300">{row.y3}</td>
-                  <td className="px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold text-emerald-300">{row.y5}</td>
-                  <td className="px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold text-emerald-300">{row.y10}</td>
-                </tr>
-              ))
+              displayPerformance.map((row, index) => {
+                const formatValue = (value) => {
+                  // Handle both new format (number) and old cached format (string)
+                  if (value === null || value === undefined) return "—";
+                  if (typeof value === "string") {
+                    // Old cached format - already formatted, just return it
+                    return value;
+                  }
+                  if (isNaN(value)) return "—";
+                  return `${value >= 0 ? "" : ""}${value.toFixed(0)}%`;
+                };
+                
+                const getValueClass = (value) => {
+                  if (value === null || value === undefined) return "text-emerald-300";
+                  // Handle old cached format (string) - check if it starts with "-"
+                  if (typeof value === "string") {
+                    if (value === "—") return "text-emerald-300";
+                    // Check if the string contains a negative number
+                    const numValue = parseFloat(value.replace("%", ""));
+                    if (!isNaN(numValue) && numValue < 0) return "text-red-400";
+                    return "text-emerald-300";
+                  }
+                  if (isNaN(value)) return "text-emerald-300";
+                  return value < 0 ? "text-red-400" : "text-emerald-300";
+                };
+                
+                return (
+                  <tr key={row.etf || index} className="odd:bg-slate-900/60 even:bg-slate-900/40">
+                    <td className="px-4 sm:px-6 py-3 text-sm sm:text-base font-medium text-slate-200">{row.etf}</td>
+                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y1)}`}>
+                      {formatValue(row.y1)}
+                    </td>
+                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y3)}`}>
+                      {formatValue(row.y3)}
+                    </td>
+                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y5)}`}>
+                      {formatValue(row.y5)}
+                    </td>
+                    <td className={`px-4 sm:px-6 py-3 text-right text-sm sm:text-base font-bold ${getValueClass(row.y10)}`}>
+                      {formatValue(row.y10)}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={5} className="px-6 py-8 text-center text-slate-400">

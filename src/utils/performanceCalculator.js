@@ -37,10 +37,10 @@ export const calculatePerformance = (etfData, symbol, name) => {
   if (!etfData || !etfData.prices || etfData.prices.length < 2) {
     return {
       etf: `${symbol} – ${name}`,
-      y1: "—",
-      y3: "—",
-      y5: "—",
-      y10: "—",
+      y1: null,
+      y3: null,
+      y5: null,
+      y10: null,
     };
   }
   
@@ -49,17 +49,12 @@ export const calculatePerformance = (etfData, symbol, name) => {
   const y5 = calculateAnnualizedReturn(etfData.prices, 5);
   const y10 = calculateAnnualizedReturn(etfData.prices, 10);
   
-  const formatReturn = (value) => {
-    if (value === null || value === undefined || isNaN(value)) return "—";
-    return `${value >= 0 ? "" : ""}${value.toFixed(0)}%`;
-  };
-  
   return {
     etf: `${symbol} – ${name}`,
-    y1: formatReturn(y1),
-    y3: formatReturn(y3),
-    y5: formatReturn(y5),
-    y10: formatReturn(y10),
+    y1: y1,
+    y3: y3,
+    y5: y5,
+    y10: y10,
   };
 };
 

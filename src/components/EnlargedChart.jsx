@@ -130,7 +130,7 @@ export const EnlargedChart = ({ timeframe, data }) => {
             {formatCurrency(value, data.currency)}
           </p>
           {periodReturn !== null && (
-            <p className="text-xs text-emerald-300">
+            <p className={`text-xs ${periodReturn >= 0 ? "text-emerald-300" : "text-red-400"}`}>
               {periodReturn >= 0 ? "+" : ""}{periodReturn}% since period start
             </p>
           )}
