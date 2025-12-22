@@ -53,7 +53,10 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
       };
 
   return (
-    <div className={`group relative flex h-full flex-col gap-3 sm:gap-4 overflow-hidden rounded-xl sm:rounded-2xl border border-slate-800/60 bg-slate-900/70 p-3 sm:p-4 lg:p-5 ${cardStyles.shadow} transition ${cardStyles.hoverBorder} ${cardStyles.hoverShadow} h-full`}>
+    <div 
+      id={`etf-card-${etf.symbol}`}
+      className={`group relative flex h-full flex-col gap-3 sm:gap-4 overflow-hidden rounded-xl sm:rounded-2xl border border-slate-800/60 bg-slate-900/70 p-3 sm:p-4 lg:p-5 ${cardStyles.shadow} transition ${cardStyles.hoverBorder} ${cardStyles.hoverShadow} h-full scroll-mt-4`}
+    >
       <div className={`pointer-events-none absolute inset-y-0 right-[-60px] w-52 rotate-12 rounded-full ${cardStyles.glowBg} blur-[100px] transition-all duration-700 group-hover:translate-x-6`} />
       <div className="relative flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0 flex-1">
