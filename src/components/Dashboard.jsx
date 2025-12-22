@@ -37,27 +37,25 @@ export const Dashboard = () => {
         <div className="absolute inset-y-0 right-[-60px] sm:right-[-100px] w-[180px] sm:w-[280px] rounded-full bg-emerald-500/25 blur-[60px] sm:blur-[100px]" />
         <div className="absolute inset-y-0 left-[-40px] sm:left-[-60px] w-[120px] sm:w-[200px] rounded-full bg-blue-500/15 blur-[50px] sm:blur-[80px]" />
         
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-              <h1 className="relative flex-1">
-                <span className="absolute -top-0.5 -left-0.5 sm:-top-1 sm:-left-1 text-3xl sm:text-5xl lg:text-6xl font-black text-emerald-500/10 select-none pointer-events-none">
-                  ETF
+        <div className="relative">
+          {/* Top row: Title and action buttons */}
+          <div className="flex items-start justify-between gap-4 mb-2 sm:mb-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="relative">
+                <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(16,185,129,0.4)] leading-tight">
+                  ETF Growth vs Defensive Dashboard
                 </span>
-                <div className="relative">
-                  <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(16,185,129,0.4)] leading-tight">
-                    ETF Growth vs Defensive Dashboard
-                  </span>
-                </div>
               </h1>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 pt-1">
               <button
                 onClick={() => setIsInfoModalOpen(true)}
-                className="flex-shrink-0 p-1.5 sm:p-2 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-400/60 transition-all hover:scale-110 active:scale-95 shadow-md hover:shadow-emerald-500/30"
+                className="p-2 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-400/60 transition-all hover:scale-110 active:scale-95 shadow-md hover:shadow-emerald-500/30"
                 aria-label="Learn about ETFs"
                 title="What is an ETF?"
               >
                 <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5"
+                  className="w-5 h-5 sm:w-6 sm:h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -70,24 +68,24 @@ export const Dashboard = () => {
                   />
                 </svg>
               </button>
-            </div>
-            <p className="text-[10px] sm:text-xs lg:text-sm text-slate-300/80 leading-relaxed max-w-2xl">
-              Compare performance, switch time horizons, and stay across the latest market signals in one cohesive workspace.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <div className="flex flex-col items-end gap-1.5 text-xs text-slate-300">
-              <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-slate-400/70 whitespace-nowrap">
-                REFRESHED {lastRefreshTimestamp || "n/a"}
-              </span>
               <button
-                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/60 bg-emerald-400/10 px-3 py-1.5 text-[10px] sm:text-[11px] font-medium text-emerald-200 backdrop-blur transition hover:border-emerald-300 hover:bg-emerald-300/20 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-800/60 disabled:text-slate-500"
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/60 bg-emerald-400/10 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] font-medium text-emerald-200 backdrop-blur transition hover:border-emerald-300 hover:bg-emerald-300/20 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-800/60 disabled:text-slate-500"
                 onClick={() => reloadData()}
                 disabled={loading}
               >
                 {loading ? "Refreshing…" : "Refresh data"}
               </button>
             </div>
+          </div>
+          
+          {/* Bottom row: Description and timestamp */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p className="text-[10px] sm:text-xs lg:text-sm text-slate-300/80 leading-relaxed max-w-2xl">
+              Compare performance, switch time horizons, and stay across the latest market signals in one cohesive workspace.
+            </p>
+            <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-slate-400/70 whitespace-nowrap">
+              REFRESHED {lastRefreshTimestamp || "n/a"}
+            </span>
           </div>
         </div>
       </header>
