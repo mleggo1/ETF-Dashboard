@@ -216,6 +216,98 @@ export const ETFInfoModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Growth vs Defensive ETFs */}
+          <div className="space-y-4">
+            <h3 className="text-lg sm:text-xl font-semibold text-emerald-300">
+              Growth vs. Defensive ETFs
+            </h3>
+            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+              ETFs can be categorized by their investment strategy. The two main types you'll see on this dashboard are:
+            </p>
+            
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Growth ETFs */}
+              <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-lg p-4 border border-emerald-500/30">
+                <h4 className="text-base font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  Growth ETFs
+                </h4>
+                <ul className="space-y-2 text-sm sm:text-base text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span>Focus on companies with <strong>high growth potential</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span>Often include tech, innovation, and emerging sectors</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span><strong>Higher potential returns</strong> but also higher risk</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span>Prices can be more <strong>volatile</strong> (go up and down more)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-1">•</span>
+                    <span>Best for investors comfortable with risk who want growth</span>
+                  </li>
+                </ul>
+                <div className="mt-3 pt-3 border-t border-emerald-500/20">
+                  <p className="text-xs text-emerald-200/80 italic">
+                    <strong>Examples:</strong> Tech stocks (NDQ), Robotics (RBTZ), Crypto (CRYP)
+                  </p>
+                </div>
+              </div>
+
+              {/* Defensive ETFs */}
+              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-lg p-4 border border-blue-500/30">
+                <h4 className="text-base font-semibold text-blue-300 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  Defensive ETFs
+                </h4>
+                <ul className="space-y-2 text-sm sm:text-base text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-1">•</span>
+                    <span>Focus on <strong>stable, reliable companies</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-1">•</span>
+                    <span>Often include bonds, property, and dividend-paying stocks</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-1">•</span>
+                    <span><strong>Lower risk</strong> with more stable, predictable returns</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-1">•</span>
+                    <span>Prices tend to be <strong>less volatile</strong> (more stable)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-1">•</span>
+                    <span>Best for investors who want stability and income</span>
+                  </li>
+                </ul>
+                <div className="mt-3 pt-3 border-t border-blue-500/20">
+                  <p className="text-xs text-blue-200/80 italic">
+                    <strong>Examples:</strong> Bonds (VAF), Property (VAP), High Yield (VHY)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+              <p className="text-sm sm:text-base leading-relaxed text-slate-200">
+                <span className="text-emerald-300 font-semibold">Think of it this way:</span> Growth ETFs are like investing in a startup company—higher risk but potentially big rewards. Defensive ETFs are like investing in a well-established business—lower risk with steady, reliable returns.
+              </p>
+            </div>
+          </div>
+
           {/* Example */}
           <div className="space-y-4">
             <h3 className="text-lg sm:text-xl font-semibold text-emerald-300">
