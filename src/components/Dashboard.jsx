@@ -89,6 +89,12 @@ export const Dashboard = () => {
           </div>
         </div>
       </header>
+      
+      {/* Compact timeframe toolbar on the left */}
+      <div className="flex justify-start">
+        <TimeframeToolbar />
+      </div>
+      
       <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
         <ETFSection title="Growth" etfs={growth} onChartClick={handleChartClick} />
         <ETFSection title="Defensive" etfs={defensive} onChartClick={handleChartClick} />

@@ -1,6 +1,5 @@
 import React from "react";
 import { ETFCard } from "./ETFCard";
-import { TimeframeToolbar } from "./TimeframeToolbar";
 
 export const ETFSection = ({ title, etfs, onChartClick }) => {
   const isGrowth = title.toLowerCase() === "growth";
@@ -60,11 +59,6 @@ export const ETFSection = ({ title, etfs, onChartClick }) => {
           {/* Decorative line */}
           <div className={`mt-1.5 sm:mt-2 h-0.5 rounded-full bg-gradient-to-r ${isGrowth ? "from-emerald-400 via-teal-400 to-emerald-400" : "from-blue-400 via-indigo-400 to-blue-400"} ${sectionStyles.glowColor}`} />
         </div>
-      </div>
-      
-      {/* Timeframe toolbar underneath - scrollable on mobile */}
-      <div className="flex justify-center overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0 pb-1">
-        <TimeframeToolbar />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 lg:gap-4">
