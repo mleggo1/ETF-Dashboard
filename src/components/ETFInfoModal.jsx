@@ -113,7 +113,7 @@ export const ETFInfoModal = ({ isOpen, onClose }) => {
                 <ul className="space-y-2 text-sm sm:text-base text-slate-300">
                   <li className="flex items-start gap-2">
                     <span className="text-blue-400 mt-1">•</span>
-                    <span>You own <strong>one company</strong> (e.g., Apple)</span>
+                    <span>You own <strong>one company</strong> (e.g., CBA or BHP)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-blue-400 mt-1">•</span>
