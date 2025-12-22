@@ -90,7 +90,7 @@ export const ETFInfoModal = ({ isOpen, onClose }) => {
             </p>
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
               <p className="text-sm sm:text-base leading-relaxed">
-                <span className="text-emerald-300 font-semibold">Think of it this way:</span> If buying a stock is like buying one apple, buying an ETF is like buying a whole fruit basket with apples, oranges, bananas, and more—all in one purchase.
+                <span className="text-emerald-300 font-semibold">Think of it this way:</span> If buying a stock is like buying one apple, buying an ETF is like buying a whole fruit salad—all in one purchase.
               </p>
             </div>
           </div>
