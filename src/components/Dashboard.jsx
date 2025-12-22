@@ -3,6 +3,7 @@ import { TimeframeToolbar } from "./TimeframeToolbar";
 import { ETFSection } from "./ETFSection";
 import { PerformanceTable } from "./PerformanceTable";
 import { ETFModal } from "./ETFModal";
+import { ETFInfoModal } from "./ETFInfoModal";
 import { AppContext } from "../App";
 
 export const Dashboard = () => {
@@ -15,6 +16,7 @@ export const Dashboard = () => {
   } = React.useContext(AppContext);
   const [selectedETF, setSelectedETF] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const growth = ETF_CONFIG.filter((e) => e.group === "growth");
   const defensive = ETF_CONFIG.filter((e) => e.group === "defensive");
 
@@ -43,13 +45,35 @@ export const Dashboard = () => {
               <span className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 text-4xl sm:text-6xl lg:text-7xl font-black text-emerald-500/10 select-none pointer-events-none">
                 ETF
               </span>
-              <div className="relative">
-                <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(16,185,129,0.4)] sm:drop-shadow-[0_0_30px_rgba(16,185,129,0.5)] leading-tight">
-                  ETF Growth vs Defensive
-                </span>
-                <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-white/90 mt-0.5 sm:mt-1 leading-tight">
-                  Dashboard
-                </span>
+              <div className="relative flex items-start gap-3">
+                <div className="flex-1">
+                  <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(16,185,129,0.4)] sm:drop-shadow-[0_0_30px_rgba(16,185,129,0.5)] leading-tight">
+                    ETF Growth vs Defensive
+                  </span>
+                  <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-white/90 mt-0.5 sm:mt-1 leading-tight">
+                    Dashboard
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsInfoModalOpen(true)}
+                  className="flex-shrink-0 mt-1 sm:mt-2 p-2 sm:p-2.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-400/60 transition-all hover:scale-110 active:scale-95 shadow-lg hover:shadow-emerald-500/30"
+                  aria-label="Learn about ETFs"
+                  title="What is an ETF?"
+                >
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
               </div>
             </h1>
             <p className="mt-3 sm:mt-4 lg:mt-5 max-w-2xl text-xs sm:text-sm lg:text-base text-slate-300/90 leading-relaxed">
@@ -83,6 +107,7 @@ export const Dashboard = () => {
         © 2025 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo
       </p>
       <ETFModal etf={selectedETF} isOpen={isModalOpen} onClose={handleCloseModal} />
+      <ETFInfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
     </div>
   );
 };
