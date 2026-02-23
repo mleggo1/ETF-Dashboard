@@ -31,6 +31,7 @@ const filterByTimeframe = (prices, timeframe) => {
   return sorted.filter((p) => new Date(p.date) >= start);
 };
 
+// 1Y = simple (holding-period) return; 3Y/5Y/10Y = annualised (CAGR) from start to end date.
 // Calculate return for a timeframe (same as charts - simple percentage change)
 const calculateTimeframeReturn = (prices, timeframe) => {
   const filtered = filterByTimeframe(prices, timeframe);

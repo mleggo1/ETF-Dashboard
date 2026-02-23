@@ -4,6 +4,31 @@ import { calculatePerformance } from "../utils/performanceCalculator";
 
 const PERFORMANCE_CACHE_KEY = "etf-performance-cache";
 const PERFORMANCE_CACHE_VERSION = 2; // bump when calculation logic changes (e.g. sort-by-date fix)
+const CUSTOM_ORDER_KEY = "etf-performance-custom-order";
+
+const loadCustomOrder = () => {
+  try {
+    const raw = localStorage.getItem(CUSTOM_ORDER_KEY);
+    if (!raw) return null;
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr) && arr.every((x) => typeof x === "string") && arr.length > 0) return arr;
+  } catch (e) {
+    console.warn("Failed to load custom order:", e);
+  }
+  return null;
+};
+
+const saveCustomOrder = (order) => {
+  try {
+    if (order && order.length > 0) {
+      localStorage.setItem(CUSTOM_ORDER_KEY, JSON.stringify(order));
+    } else {
+      localStorage.removeItem(CUSTOM_ORDER_KEY);
+    }
+  } catch (e) {
+    console.warn("Failed to save custom order:", e);
+  }
+};
 
 const loadCachedPerformance = () => {
   try {
@@ -51,6 +76,20 @@ export const PerformanceTable = () => {
   const [cachedPerformance, setCachedPerformance] = React.useState(loadCachedPerformance());
   const [sortBy, setSortBy] = React.useState("y1");
   const [sortDir, setSortDir] = React.useState("desc");
+  const [customOrder, setCustomOrder] = React.useState(() => loadCustomOrder());
+  const [dragOverIndex, setDragOverIndex] = React.useState(-1);
+
+  const clearCustomOrder = () => {
+    setCustomOrder(null);
+    saveCustomOrder(null);
+  };
+
+  const handleSaveCurrentOrder = () => {
+    if (!displayPerformance.length) return;
+    const order = sortedPerformance.map((r) => r.symbol);
+    saveCustomOrder(order);
+    setCustomOrder(order);
+  };
   
   // Calculate performance from current data
   const currentPerformance = useMemo(() => {
@@ -89,12 +128,28 @@ export const PerformanceTable = () => {
   // Use current performance if available, otherwise use cached
   const displayPerformance = currentPerformance || cachedPerformance?.data || [];
   
-  // Sort: nulls/undefined last; numeric desc = high first, asc = low first; ETF A–Z / Z–A
+  // Sort: custom order (saved sequence) when set; else column sort (nulls last; numeric desc = high first; ETF A–Z / Z–A)
   const sortedPerformance = useMemo(() => {
     if (!displayPerformance.length) return [];
+    const list = [...displayPerformance];
+
+    if (customOrder && Array.isArray(customOrder) && customOrder.length > 0) {
+      const orderSet = new Set(customOrder);
+      const knownOrder = customOrder.filter((s) => list.some((r) => r.symbol === s));
+      const newSymbols = list.filter((r) => !orderSet.has(r.symbol)).map((r) => r.symbol);
+      const fullOrder = [...knownOrder, ...newSymbols];
+      const orderMap = new Map(fullOrder.map((s, i) => [s, i]));
+      list.sort((a, b) => {
+        const ai = orderMap.get(a.symbol) ?? Infinity;
+        const bi = orderMap.get(b.symbol) ?? Infinity;
+        return ai - bi;
+      });
+      return list;
+    }
+
     const dir = sortDir === "asc" ? 1 : -1;
     const key = sortBy;
-    return [...displayPerformance].sort((a, b) => {
+    return list.sort((a, b) => {
       const va = getSortValue(a, key);
       const vb = getSortValue(b, key);
       const aNull = va === null || va === undefined;
@@ -107,7 +162,7 @@ export const PerformanceTable = () => {
       }
       return va < vb ? dir : va > vb ? -dir : 0;
     });
-  }, [displayPerformance, sortBy, sortDir]);
+  }, [displayPerformance, sortBy, sortDir, customOrder]);
   
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -135,6 +190,29 @@ export const PerformanceTable = () => {
               <p className="mt-1 text-[9px] sm:text-[10px] lg:text-xs text-emerald-200/70 normal-case">
                 Updated {cachedPerformance.timestamp}
               </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {customOrder && customOrder.length > 0 && (
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-emerald-300/90 bg-emerald-500/20 border border-emerald-400/40 rounded px-2 py-1">
+                Custom order
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveCurrentOrder}
+              className="text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-emerald-200/90 hover:text-emerald-100 border border-emerald-400/50 hover:border-emerald-400/70 rounded-lg px-2.5 py-1.5 transition"
+            >
+              Save order
+            </button>
+            {customOrder && customOrder.length > 0 && (
+              <button
+                type="button"
+                onClick={clearCustomOrder}
+                className="text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-500 rounded-lg px-2.5 py-1.5 transition"
+              >
+                Clear order
+              </button>
             )}
           </div>
         </div>
