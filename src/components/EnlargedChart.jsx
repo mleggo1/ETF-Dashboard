@@ -8,11 +8,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Sort by date first so lastDate is correct - matches table and MiniLineChart
 const filterByTimeframe = (prices, timeframe) => {
   if (!prices) return [];
   if (timeframe === "ALL") return prices;
 
-  const lastDate = new Date(prices[prices.length - 1].date);
+  const sorted = [...prices].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const lastDate = new Date(sorted[sorted.length - 1].date);
   const start = new Date(lastDate);
 
   switch (timeframe) {
@@ -36,7 +38,7 @@ const filterByTimeframe = (prices, timeframe) => {
       break;
   }
 
-  return prices.filter((p) => new Date(p.date) >= start);
+  return sorted.filter((p) => new Date(p.date) >= start);
 };
 
 const formatDateLabel = (dateString, timeframe) => {

@@ -3,13 +3,14 @@ import { AppContext } from "../App";
 import { calculatePerformance } from "../utils/performanceCalculator";
 
 const PERFORMANCE_CACHE_KEY = "etf-performance-cache";
+const PERFORMANCE_CACHE_VERSION = 2; // bump when calculation logic changes (e.g. sort-by-date fix)
 
 const loadCachedPerformance = () => {
   try {
     const cached = localStorage.getItem(PERFORMANCE_CACHE_KEY);
     if (!cached) return null;
     const parsed = JSON.parse(cached);
-    if (parsed && parsed.data && Array.isArray(parsed.data)) {
+    if (parsed && parsed.data && Array.isArray(parsed.data) && parsed.version === PERFORMANCE_CACHE_VERSION) {
       return parsed;
     }
   } catch (error) {
@@ -21,6 +22,7 @@ const loadCachedPerformance = () => {
 const saveCachedPerformance = (performanceData, timestamp) => {
   try {
     const cache = {
+      version: PERFORMANCE_CACHE_VERSION,
       data: performanceData,
       timestamp: timestamp,
       cachedAt: new Date().toISOString(),
@@ -31,9 +33,24 @@ const saveCachedPerformance = (performanceData, timestamp) => {
   }
 };
 
+const NUMERIC_KEYS = ["y1", "y3", "y5", "y10"];
+
+const getSortValue = (row, key) => {
+  const v = row[key];
+  if (v === null || v === undefined) return null;
+  if (key === "etf") return (v || "").toString().toLowerCase();
+  if (typeof v === "string") {
+    const num = parseFloat(v.replace("%", ""));
+    return isNaN(num) ? null : num;
+  }
+  return isNaN(v) ? null : Number(v);
+};
+
 export const PerformanceTable = () => {
   const { etfData, ETF_CONFIG, lastRefreshTimestamp } = React.useContext(AppContext);
   const [cachedPerformance, setCachedPerformance] = React.useState(loadCachedPerformance());
+  const [sortBy, setSortBy] = React.useState("y1");
+  const [sortDir, setSortDir] = React.useState("desc");
   
   // Calculate performance from current data
   const currentPerformance = useMemo(() => {
@@ -72,6 +89,40 @@ export const PerformanceTable = () => {
   // Use current performance if available, otherwise use cached
   const displayPerformance = currentPerformance || cachedPerformance?.data || [];
   
+  // Sort: nulls/undefined last; numeric desc = high first, asc = low first; ETF A–Z / Z–A
+  const sortedPerformance = useMemo(() => {
+    if (!displayPerformance.length) return [];
+    const dir = sortDir === "asc" ? 1 : -1;
+    const key = sortBy;
+    return [...displayPerformance].sort((a, b) => {
+      const va = getSortValue(a, key);
+      const vb = getSortValue(b, key);
+      const aNull = va === null || va === undefined;
+      const bNull = vb === null || vb === undefined;
+      if (aNull && bNull) return 0;
+      if (aNull) return 1;
+      if (bNull) return -1;
+      if (key === "etf") {
+        return va < vb ? -dir : va > vb ? dir : 0;
+      }
+      return va < vb ? dir : va > vb ? -dir : 0;
+    });
+  }, [displayPerformance, sortBy, sortDir]);
+  
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortDir(NUMERIC_KEYS.includes(column) ? "desc" : "asc");
+    }
+  };
+  
+  const SortIndicator = ({ column }) => {
+    if (sortBy !== column) return <span className="opacity-40">↕</span>;
+    return sortDir === "asc" ? <span>↑</span> : <span>↓</span>;
+  };
+  
   return (
     <div className="overflow-hidden rounded-xl sm:rounded-2xl border-2 border-slate-800/80 bg-slate-900/80 shadow-[0_18px_45px_-25px_rgba(16,185,129,0.45)]">
       <div className="bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-transparent px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 border-b border-slate-800/60">
@@ -92,16 +143,41 @@ export const PerformanceTable = () => {
         <table className="w-full text-xs sm:text-sm text-slate-200/90 min-w-[500px] sm:min-w-[600px]">
           <thead className="bg-slate-900/80 border-b-2 border-slate-800/60">
             <tr>
-              <th className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-left text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300">ETF</th>
-              <th className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300">1 YR</th>
-              <th className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300">3 YRS</th>
-              <th className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300">5 YRS</th>
-              <th className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300">10 YRS</th>
+              <th
+                className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-left text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
+                onClick={() => handleSort("etf")}
+              >
+                <span className="inline-flex items-center gap-1">ETF <SortIndicator column="etf" /></span>
+              </th>
+              <th
+                className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
+                onClick={() => handleSort("y1")}
+              >
+                <span className="inline-flex items-center justify-end gap-1 w-full">1 YR <SortIndicator column="y1" /></span>
+              </th>
+              <th
+                className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
+                onClick={() => handleSort("y3")}
+              >
+                <span className="inline-flex items-center justify-end gap-1 w-full">3 YRS <SortIndicator column="y3" /></span>
+              </th>
+              <th
+                className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
+                onClick={() => handleSort("y5")}
+              >
+                <span className="inline-flex items-center justify-end gap-1 w-full">5 YRS <SortIndicator column="y5" /></span>
+              </th>
+              <th
+                className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
+                onClick={() => handleSort("y10")}
+              >
+                <span className="inline-flex items-center justify-end gap-1 w-full">10 YRS <SortIndicator column="y10" /></span>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {displayPerformance.length > 0 ? (
-              displayPerformance.map((row, index) => {
+            {sortedPerformance.length > 0 ? (
+              sortedPerformance.map((row, index) => {
                 const formatValue = (value, isOneYear = false) => {
                   // Handle both new format (number) and old cached format (string)
                   if (value === null || value === undefined) return "—";
