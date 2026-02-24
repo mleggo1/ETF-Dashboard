@@ -78,6 +78,7 @@ export const PerformanceTable = () => {
   const [sortDir, setSortDir] = React.useState("desc");
   const [customOrder, setCustomOrder] = React.useState(() => loadCustomOrder());
   const [dragOverIndex, setDragOverIndex] = React.useState(-1);
+  const [draggedIndex, setDraggedIndex] = React.useState(-1);
 
   const clearCustomOrder = () => {
     setCustomOrder(null);
@@ -89,6 +90,43 @@ export const PerformanceTable = () => {
     const order = sortedPerformance.map((r) => r.symbol);
     saveCustomOrder(order);
     setCustomOrder(order);
+  };
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.setData("application/x-drag-index", String(index));
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setDragImage(e.currentTarget, 0, 0);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(-1);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(-1);
+    setDragOverIndex(-1);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    setDragOverIndex(-1);
+    const fromIndex = parseInt(e.dataTransfer.getData("application/x-drag-index"), 10);
+    if (fromIndex === dropIndex || isNaN(fromIndex)) return;
+    const currentOrder = customOrder && customOrder.length > 0
+      ? [...customOrder]
+      : sortedPerformance.map((r) => r.symbol);
+    const symbol = currentOrder[fromIndex];
+    const reordered = currentOrder.filter((_, i) => i !== fromIndex);
+    reordered.splice(dropIndex, 0, symbol);
+    setCustomOrder(reordered);
+    saveCustomOrder(reordered);
   };
   
   // Calculate performance from current data
@@ -200,6 +238,17 @@ export const PerformanceTable = () => {
             )}
             <button
               type="button"
+              onClick={() => window.print()}
+              className="p-1.5 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition focus:outline-none focus:ring-1 focus:ring-slate-500"
+              title="Print"
+              aria-label="Print"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+            </button>
+            <button
+              type="button"
               onClick={handleSaveCurrentOrder}
               className="text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-emerald-200/90 hover:text-emerald-100 border border-emerald-400/50 hover:border-emerald-400/70 rounded-lg px-2.5 py-1.5 transition"
             >
@@ -221,6 +270,7 @@ export const PerformanceTable = () => {
         <table className="w-full text-xs sm:text-sm text-slate-200/90 min-w-[500px] sm:min-w-[600px]">
           <thead className="bg-slate-900/80 border-b-2 border-slate-800/60">
             <tr>
+              <th className="w-8 sm:w-9 px-1 py-3 sm:py-3.5 text-slate-500" aria-label="Reorder" />
               <th
                 className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-left text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
                 onClick={() => handleSort("etf")}
@@ -284,13 +334,29 @@ export const PerformanceTable = () => {
                 };
                 
                 const symbol = row.symbol || row.etf?.split(" – ")[0] || `row-${index}`;
-                
+                const isDragging = index === draggedIndex;
+                const isDropTarget = index === dragOverIndex;
+
                 return (
-                  <tr 
-                    key={row.etf || index} 
+                  <tr
+                    key={row.etf || index}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
                     onClick={() => handleRowClick(symbol)}
-                    className="odd:bg-slate-900/50 even:bg-slate-900/30 border-b border-slate-800/40 cursor-pointer transition hover:bg-slate-800/60 hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.3)] active:bg-slate-800/70"
+                    className={`odd:bg-slate-900/50 even:bg-slate-900/30 border-b border-slate-800/40 cursor-pointer transition hover:bg-slate-800/60 hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.3)] active:bg-slate-800/70 select-none ${
+                      isDragging ? "opacity-50" : ""
+                    } ${isDropTarget ? "border-l-2 border-l-emerald-400 bg-emerald-900/20" : ""}`}
                   >
+                    <td
+                      className="w-8 sm:w-9 px-1 py-3 sm:py-3.5 text-slate-500 cursor-grab active:cursor-grabbing"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="inline-block text-slate-500 hover:text-slate-400" aria-hidden="true">⋮⋮</span>
+                    </td>
                     <td className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-xs sm:text-sm lg:text-base font-semibold text-slate-200">
                       <div className="flex items-center gap-2">
                         <span>{row.etf}</span>
@@ -314,7 +380,7 @@ export const PerformanceTable = () => {
               })
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
                   Loading performance data...
                 </td>
               </tr>
