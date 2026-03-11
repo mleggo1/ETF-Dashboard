@@ -118,15 +118,37 @@ export const PerformanceTable = () => {
     e.preventDefault();
     setDragOverIndex(-1);
     const fromIndex = parseInt(e.dataTransfer.getData("application/x-drag-index"), 10);
-    if (fromIndex === dropIndex || isNaN(fromIndex)) return;
-    const currentOrder = customOrder && customOrder.length > 0
-      ? [...customOrder]
-      : sortedPerformance.map((r) => r.symbol);
-    const symbol = currentOrder[fromIndex];
-    const reordered = currentOrder.filter((_, i) => i !== fromIndex);
-    reordered.splice(dropIndex, 0, symbol);
-    setCustomOrder(reordered);
-    saveCustomOrder(reordered);
+    if (isNaN(fromIndex) || fromIndex === dropIndex) return;
+
+    // Build a full order list that always includes any new symbols
+    let currentOrder =
+      customOrder && customOrder.length > 0
+        ? [...customOrder]
+        : sortedPerformance.map((r) => r.symbol);
+
+    const existingSet = new Set(currentOrder);
+    sortedPerformance.forEach((row) => {
+      if (!existingSet.has(row.symbol)) {
+        existingSet.add(row.symbol);
+        currentOrder.push(row.symbol);
+      }
+    });
+
+    if (fromIndex < 0 || fromIndex >= currentOrder.length) return;
+    let targetIndex = dropIndex;
+    if (targetIndex < 0) targetIndex = 0;
+    if (targetIndex >= currentOrder.length) targetIndex = currentOrder.length - 1;
+
+    const [movedSymbol] = currentOrder.splice(fromIndex, 1);
+    if (!movedSymbol) return;
+    // Adjust target index when dragging downward
+    if (fromIndex < targetIndex) {
+      targetIndex -= 1;
+    }
+    currentOrder.splice(targetIndex, 0, movedSymbol);
+
+    setCustomOrder(currentOrder);
+    saveCustomOrder(currentOrder);
   };
   
   // Calculate performance from current data
