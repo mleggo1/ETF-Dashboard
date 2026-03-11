@@ -19,7 +19,7 @@ export const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const growth = ETF_CONFIG.filter((e) => e.group === "growth");
-  const defensive = ETF_CONFIG.filter((e) => e.group === "defensive");
+  const defensive = ETF_CONFIG.filter((e) => e.group === "defensive" && e.symbol !== "STRF");
 
   const handleChartClick = (etf) => {
     setSelectedETF(etf);

@@ -5,6 +5,7 @@
   {"symbol": "CRYP.AX", "name": "BetaShares Crypto Innovators ETF", "group": "growth"},
   {"symbol": "EBTC.XA", "name": "21Shares Bitcoin ETF", "group": "growth"},
   {"symbol": "EETH.XA", "name": "Global X 21Shares Ethereum ETF", "group": "growth"},
+  {"symbol": "VAS.AX", "name": "Vanguard Australian Shares Index ETF", "group": "defensive"},
   {"symbol": "VHY.AX", "name": "Vanguard High Yield ETF", "group": "defensive"},
   {"symbol": "VAP.AX", "name": "Vanguard Australian Property Secs ETF", "group": "defensive"},
   {"symbol": "IOO.AX", "name": "iShares Global 100 ETF", "group": "defensive"},

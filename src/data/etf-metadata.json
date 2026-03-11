@@ -214,6 +214,34 @@
     "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
     "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
+  "VAS.AX": {
+    "description": "Vanguard Australian Shares Index ETF seeks to track the performance of the S&P/ASX 300 Index before fees, expenses and taxes, providing diversified exposure to the top 300 companies listed on the ASX.",
+    "category": "Australian Shares",
+    "indexTracked": "S&P/ASX 300 Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "BHP Group Limited", "weight": "~10%"},
+      {"name": "Commonwealth Bank of Australia", "weight": "~9%"},
+      {"name": "CSL Limited", "weight": "~6%"},
+      {"name": "National Australia Bank Limited", "weight": "~5%"},
+      {"name": "Westpac Banking Corporation", "weight": "~5%"},
+      {"name": "Wesfarmers Limited", "weight": "~4%"},
+      {"name": "Macquarie Group Limited", "weight": "~4%"},
+      {"name": "Other ASX 300 constituents", "weight": "Remainder"}
+    ],
+    "mer": "0.10%",
+    "dividendYield": "Approx. 3–5% (varies)",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "—",
+      "3Y": "—",
+      "5Y": "—",
+      "10Y": "—"
+    },
+    "goodFor": "Investors seeking low-cost, broad market exposure to the Australian sharemarket via the top 300 ASX-listed companies.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "Vanguard VAS ETF factsheet / website (not a live feed)"
+  },
   "VGS.AX": {
     "description": "Vanguard MSCI Index International Shares ETF seeks to track the performance of the MSCI World ex-Australia Index before fees, expenses and taxes, providing diversified exposure to large and mid-cap stocks across 22 developed markets.",
     "category": "Global Shares",
