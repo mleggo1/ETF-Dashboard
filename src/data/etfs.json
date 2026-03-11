@@ -9,5 +9,6 @@
   {"symbol": "VAP.AX", "name": "Vanguard Australian Property Secs ETF", "group": "defensive"},
   {"symbol": "IOO.AX", "name": "iShares Global 100 ETF", "group": "defensive"},
   {"symbol": "VAF.AX", "name": "Vanguard Aus Fixed Interest", "group": "defensive"},
+  {"symbol": "VGS.AX", "name": "Vanguard MSCI Index International Shares ETF", "group": "defensive"},
   {"symbol": "STRF", "name": "MicroStrategy Capital II", "group": "defensive"}
 ]

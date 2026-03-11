@@ -86,26 +86,6 @@ const formatDateLabel = (dateString, timeframe) => {
 };
 
 export const MiniLineChart = ({ timeframe, data, group }) => {
-  if (!data) {
-    return <div className="text-xs text-slate-400">Loading chart...</div>;
-  }
-
-  if (data.error) {
-    return <div className="text-xs text-red-500">Data unavailable: {data.error}</div>;
-  }
-
-  const filtered = filterByTimeframe(data.prices, timeframe);
-  if (!filtered.length) {
-    return <div className="text-xs text-slate-400">Not enough data for {timeframe}</div>;
-  }
-
-  const first = filtered[0];
-  const last = filtered[filtered.length - 1];
-  const pct =
-    first && last
-      ? (((last.close - first.close) / first.close) * 100).toFixed(2)
-      : null;
-
   const isDefensive = group === "defensive";
   
   // Color scheme: Blue for defensive, Green for growth
@@ -135,6 +115,30 @@ export const MiniLineChart = ({ timeframe, data, group }) => {
     () => `lineGradient-${data?.symbol?.replace(/[^a-zA-Z0-9]/g, "") ?? "default"}`,
     [data?.symbol]
   );
+
+  const filtered = React.useMemo(
+    () => (data && !data.error ? filterByTimeframe(data.prices, timeframe) : []),
+    [data, timeframe]
+  );
+
+  if (!data) {
+    return <div className="text-xs text-slate-400">Loading chart...</div>;
+  }
+
+  if (data.error) {
+    return <div className="text-xs text-red-500">Data unavailable: {data.error}</div>;
+  }
+
+  if (!filtered.length) {
+    return <div className="text-xs text-slate-400">Not enough data for {timeframe}</div>;
+  }
+
+  const first = filtered[0];
+  const last = filtered[filtered.length - 1];
+  const pct =
+    first && last
+      ? (((last.close - first.close) / first.close) * 100).toFixed(2)
+      : null;
 
   return (
     <div className="flex flex-col h-full">

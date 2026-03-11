@@ -84,6 +84,13 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
               </div>
             ))}
           </div>
+          {(metadata.holdingsAsOf || metadata.holdingsSource) && (
+            <p className="mt-2 text-[11px] text-slate-500">
+              {metadata.holdingsAsOf && <>As at {metadata.holdingsAsOf}</>}
+              {metadata.holdingsAsOf && metadata.holdingsSource && " · "}
+              {metadata.holdingsSource && <>Source: {metadata.holdingsSource}</>}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

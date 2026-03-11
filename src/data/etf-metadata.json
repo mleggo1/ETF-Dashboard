@@ -23,7 +23,9 @@
       "5Y": "10.8%",
       "10Y": "15%"
     },
-    "goodFor": "Long-term growth investors seeking broad US market exposure with low fees. Ideal for building core portfolio holdings."
+    "goodFor": "Long-term growth investors seeking broad US market exposure with low fees. Ideal for building core portfolio holdings.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "NDQ.AX": {
     "description": "Provides exposure to the NASDAQ-100 Index, focusing on the 100 largest non-financial companies listed on NASDAQ.",
@@ -49,7 +51,9 @@
       "5Y": "13.5%",
       "10Y": "20%"
     },
-    "goodFor": "Investors seeking concentrated exposure to US technology and growth companies. Higher volatility but strong long-term growth potential."
+    "goodFor": "Investors seeking concentrated exposure to US technology and growth companies. Higher volatility but strong long-term growth potential.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "RBTZ.AX": {
     "description": "Provides exposure to global companies involved in robotics, automation, and artificial intelligence technologies.",
@@ -74,7 +78,9 @@
       "3Y": "—",
       "5Y": "12.5%"
     },
-    "goodFor": "Investors seeking exposure to the automation and robotics revolution. Higher volatility but strong growth potential in transformative technologies."
+    "goodFor": "Investors seeking exposure to the automation and robotics revolution. Higher volatility but strong growth potential in transformative technologies.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "CRYP.AX": {
     "description": "Provides exposure to companies involved in cryptocurrency, blockchain technology, and digital asset infrastructure.",
@@ -99,7 +105,9 @@
       "3Y": "—",
       "5Y": "23%"
     },
-    "goodFor": "Investors seeking exposure to the cryptocurrency and blockchain ecosystem through equity holdings. Very high volatility - speculative asset class."
+    "goodFor": "Investors seeking exposure to the cryptocurrency and blockchain ecosystem through equity holdings. Very high volatility - speculative asset class.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "IOO.AX": {
     "description": "Provides exposure to 100 of the world's largest blue-chip companies across developed markets, offering diversified global equity exposure.",
@@ -124,7 +132,9 @@
       "3Y": "—",
       "5Y": "9.5%"
     },
-    "goodFor": "Investors seeking core global equity exposure through established, large-cap companies. Balanced approach to international diversification with moderate volatility."
+    "goodFor": "Investors seeking core global equity exposure through established, large-cap companies. Balanced approach to international diversification with moderate volatility.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "VHY.AX": {
     "description": "Focuses on Australian companies with high dividend yields, providing income-focused exposure to the Australian equity market.",
@@ -150,7 +160,9 @@
       "5Y": "15%",
       "10Y": "10%"
     },
-    "goodFor": "Income-focused investors seeking regular dividend payments from Australian companies. Suitable for retirees or those building passive income streams."
+    "goodFor": "Income-focused investors seeking regular dividend payments from Australian companies. Suitable for retirees or those building passive income streams.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "VAP.AX": {
     "description": "Provides exposure to Australian real estate investment trusts (REITs) and property securities, tracking the S&P/ASX 300 A-REIT Index.",
@@ -175,7 +187,9 @@
       "3Y": "—",
       "5Y": "—"
     },
-    "goodFor": "Investors seeking exposure to Australian commercial and residential property markets through REITs. Provides diversification and regular income distributions."
+    "goodFor": "Investors seeking exposure to Australian commercial and residential property markets through REITs. Provides diversification and regular income distributions.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "VAF.AX": {
     "description": "Invests in a diversified portfolio of Australian fixed interest securities, including government and corporate bonds.",
@@ -196,7 +210,37 @@
       "5Y": "0%",
       "10Y": "2%"
     },
-    "goodFor": "Conservative investors seeking stable income with lower volatility. Ideal for portfolio diversification and capital preservation. Suitable for those nearing or in retirement."
+    "goodFor": "Conservative investors seeking stable income with lower volatility. Ideal for portfolio diversification and capital preservation. Suitable for those nearing or in retirement.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
+  },
+  "VGS.AX": {
+    "description": "Vanguard MSCI Index International Shares ETF seeks to track the performance of the MSCI World ex-Australia Index before fees, expenses and taxes, providing diversified exposure to large and mid-cap stocks across 22 developed markets.",
+    "category": "Global Shares",
+    "indexTracked": "MSCI World ex-Australia Index",
+    "strategy": "Passive index tracking",
+    "holdings": [
+      {"name": "Apple Inc.", "weight": "~5.0%"},
+      {"name": "Microsoft Corporation", "weight": "~4.5%"},
+      {"name": "NVIDIA Corporation", "weight": "~3.0%"},
+      {"name": "Amazon.com Inc.", "weight": "~2.5%"},
+      {"name": "Alphabet Inc. Class A & C", "weight": "~3.5%"},
+      {"name": "Meta Platforms Inc.", "weight": "~2.0%"},
+      {"name": "Broad global developed markets equities", "weight": "~79.5%"},
+      {"name": "Other constituents across 22 developed markets", "weight": "Remainder"}
+    ],
+    "mer": "0.18%",
+    "dividendYield": "Approx. 1–2% (varies)",
+    "distributionFrequency": "Quarterly",
+    "performance": {
+      "1Y": "—",
+      "3Y": "—",
+      "5Y": "—",
+      "10Y": "—"
+    },
+    "goodFor": "Investors seeking broad, diversified exposure to international developed markets outside Australia, including the US, UK, Japan, Canada, France, Germany and Israel.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "Vanguard VGS ETF factsheet / website (not a live feed)"
   },
   "EBTC.XA": {
     "description": "Provides direct exposure to Bitcoin through a physically-backed ETF structure, tracking Bitcoin's price movements.",
@@ -215,7 +259,9 @@
       "3Y": "81%",
       "5Y": "—"
     },
-    "goodFor": "Investors seeking cryptocurrency exposure through a regulated, exchange-traded structure. High volatility asset class."
+    "goodFor": "Investors seeking cryptocurrency exposure through a regulated, exchange-traded structure. High volatility asset class.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "EETH.XA": {
     "description": "Provides direct exposure to Ethereum through a physically-backed ETF structure, tracking Ethereum's price movements.",
@@ -234,7 +280,9 @@
       "3Y": "48%",
       "5Y": "—"
     },
-    "goodFor": "Investors seeking Ethereum exposure through a regulated ETF structure. Suitable for those comfortable with high cryptocurrency volatility."
+    "goodFor": "Investors seeking Ethereum exposure through a regulated ETF structure. Suitable for those comfortable with high cryptocurrency volatility.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "STRF": {
     "description": "MicroStrategy Capital II provides strategic investment exposure with a focus on technology and digital assets through MicroStrategy's corporate strategy.",
@@ -252,7 +300,9 @@
       "3Y": "—",
       "5Y": "—"
     },
-    "goodFor": "Investors seeking exposure to MicroStrategy's strategic approach to digital assets and technology investments."
+    "goodFor": "Investors seeking exposure to MicroStrategy's strategic approach to digital assets and technology investments.",
+    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
+    "holdingsSource": "ETF issuer filings / company reports (not a live feed)"
   }
 }
 

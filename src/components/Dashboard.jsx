@@ -13,6 +13,7 @@ export const Dashboard = () => {
     reloadData,
     errors,
     lastRefreshTimestamp,
+    dataAsAtDate,
   } = React.useContext(AppContext);
   const [selectedETF, setSelectedETF] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,11 +81,17 @@ export const Dashboard = () => {
           
           {/* Bottom row: Description and timestamp */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p className="text-[10px] sm:text-xs lg:text-sm text-slate-300/80 leading-relaxed max-w-2xl">
-              Compare performance, switch time horizons, and stay across the latest market signals in one cohesive workspace.
-            </p>
+            <div className="flex flex-col items-start gap-1 max-w-2xl">
+              <p className="text-[10px] sm:text-xs lg:text-sm text-slate-300/80 leading-relaxed">
+                Compare performance, switch time horizons, and stay across the latest market signals in one cohesive workspace.
+              </p>
+              <p className="text-[9px] sm:text-[10px] text-slate-400/80">
+                <span className="uppercase tracking-[0.2em] text-slate-400/70">Data as at</span>{" "}
+                {dataAsAtDate || "n/a"}
+              </p>
+            </div>
             <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-slate-400/70 whitespace-nowrap">
-              REFRESHED {lastRefreshTimestamp || "n/a"}
+              Refreshed {lastRefreshTimestamp || "n/a"}
             </span>
           </div>
         </div>
@@ -101,7 +108,7 @@ export const Dashboard = () => {
       </div>
       <PerformanceTable />
       <p className="text-xs text-slate-400 text-right">
-        Source: Yahoo Finance · Dataset generated {lastRefreshTimestamp || "n/a"}
+        Source: Yahoo Finance · Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
       </p>
       <p className="text-sm text-slate-500 text-center pt-4">
         © 2025 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo

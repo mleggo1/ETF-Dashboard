@@ -116,6 +116,11 @@ export const EnlargedChart = ({ timeframe, data, group }) => {
     [data?.symbol]
   );
 
+  const filtered = useMemo(
+    () => (data && !data.error ? filterByTimeframe(data.prices, timeframe) : []),
+    [data, timeframe]
+  );
+
   if (!data) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -137,7 +142,6 @@ export const EnlargedChart = ({ timeframe, data, group }) => {
     );
   }
 
-  const filtered = filterByTimeframe(data.prices, timeframe);
   if (!filtered.length) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
