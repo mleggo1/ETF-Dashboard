@@ -39,16 +39,14 @@ export const Dashboard = () => {
         <div className="absolute inset-y-0 left-[-40px] sm:left-[-60px] w-[120px] sm:w-[200px] rounded-full bg-blue-500/15 blur-[50px] sm:blur-[80px]" />
         
         <div className="relative">
-          {/* Top row: Title and action buttons */}
-          <div className="flex items-start justify-between gap-4 mb-2 sm:mb-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="relative">
-                <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(16,185,129,0.4)] leading-tight">
-                  ETF Growth vs Defensive Dashboard
-                </span>
-              </h1>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 pt-1">
+          {/* Title full-width on mobile; buttons move below on mobile to prevent heading cut-off */}
+          <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row sm:items-start sm:justify-between mb-2 sm:mb-3">
+            <h1 className="relative flex-1 min-w-0 order-1 sm:order-1">
+              <span className="block text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight bg-gradient-to-r from-emerald-300 via-teal-200 to-blue-300 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(16,185,129,0.4)] leading-tight break-words">
+                ETF Growth vs Defensive Dashboard
+              </span>
+            </h1>
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 order-2 sm:order-2 sm:pt-1">
               <button
                 onClick={() => setIsInfoModalOpen(true)}
                 className="p-2 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-400/60 transition-all hover:scale-110 active:scale-95 shadow-md hover:shadow-emerald-500/30"
