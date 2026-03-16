@@ -45,7 +45,8 @@ const calculateTimeframeReturn = (prices, timeframe) => {
   return ((last.close - first.close) / first.close) * 100;
 };
 
-// Calculate annualized return percentage (for 3Y, 5Y, 10Y)
+// Calculate annualized return percentage (for 3Y, 5Y, 10Y).
+// Returns null if we don't have data going back at least ~N years (so 5Y/10Y show — for newer ETFs like EETH, EBTC).
 export const calculateAnnualizedReturn = (prices, years) => {
   if (!prices || prices.length < 2) return null;
   
@@ -54,7 +55,7 @@ export const calculateAnnualizedReturn = (prices, years) => {
   const startDate = new Date(lastDate);
   startDate.setFullYear(startDate.getFullYear() - years);
   
-  // Find the closest price point to the start date
+  // Find the first price on or after the N-years-ago date
   let startPrice = null;
   for (let i = 0; i < sorted.length; i++) {
     const priceDate = new Date(sorted[i].date);
@@ -64,13 +65,10 @@ export const calculateAnnualizedReturn = (prices, years) => {
     }
   }
   
-  // If no price found before start date, use the first available price
-  if (startPrice === null) {
-    startPrice = sorted[0].close;
-  }
+  // No price on or after startDate means history is shorter than N years — return null (show —)
+  if (startPrice === null) return null;
   
   const endPrice = sorted[sorted.length - 1].close;
-  
   if (!startPrice || !endPrice || startPrice <= 0) return null;
   
   const totalReturn = (endPrice - startPrice) / startPrice;
