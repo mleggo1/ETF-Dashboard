@@ -45,6 +45,10 @@ const calculateTimeframeReturn = (prices, timeframe) => {
   return ((last.close - first.close) / first.close) * 100;
 };
 
+// Max acceptable gap: start price must be within this many days of the N-year-ago date.
+// If our earliest data is e.g. 2 years ago, it will be ~3 years after the 5Y startDate → we return null.
+const MAX_START_DAYS_AFTER_WINDOW = 90;
+
 // Calculate annualized return percentage (for 3Y, 5Y, 10Y).
 // Returns null if we don't have data going back at least ~N years (so 5Y/10Y show — for newer ETFs like EETH, EBTC).
 export const calculateAnnualizedReturn = (prices, years) => {
@@ -54,19 +58,24 @@ export const calculateAnnualizedReturn = (prices, years) => {
   const lastDate = new Date(sorted[sorted.length - 1].date);
   const startDate = new Date(lastDate);
   startDate.setFullYear(startDate.getFullYear() - years);
+  const cutoffDate = new Date(startDate);
+  cutoffDate.setDate(cutoffDate.getDate() + MAX_START_DAYS_AFTER_WINDOW);
   
   // Find the first price on or after the N-years-ago date
   let startPrice = null;
+  let startPriceDate = null;
   for (let i = 0; i < sorted.length; i++) {
     const priceDate = new Date(sorted[i].date);
     if (priceDate >= startDate) {
       startPrice = sorted[i].close;
+      startPriceDate = priceDate;
       break;
     }
   }
   
-  // No price on or after startDate means history is shorter than N years — return null (show —)
-  if (startPrice === null) return null;
+  // No price on or after startDate, or start price is too recent (we don't have ~N years of history)
+  if (startPrice === null || startPriceDate == null) return null;
+  if (startPriceDate > cutoffDate) return null;
   
   const endPrice = sorted[sorted.length - 1].close;
   if (!startPrice || !endPrice || startPrice <= 0) return null;

@@ -3,7 +3,7 @@ import { AppContext } from "../App";
 import { calculatePerformance } from "../utils/performanceCalculator";
 
 const PERFORMANCE_CACHE_KEY = "etf-performance-cache";
-const PERFORMANCE_CACHE_VERSION = 2; // bump when calculation logic changes (e.g. sort-by-date fix)
+const PERFORMANCE_CACHE_VERSION = 3; // bump when calculation logic changes (e.g. 5Y/10Y require sufficient history)
 const CUSTOM_ORDER_KEY = "etf-performance-custom-order";
 
 const loadCustomOrder = () => {
