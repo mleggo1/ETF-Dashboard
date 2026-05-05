@@ -186,7 +186,7 @@ export const EnlargedChart = ({ timeframe, data, group, layout }) => {
   };
 
   const chartMargin = isModal
-    ? { top: 8, right: 8, bottom: 44, left: 4 }
+    ? { top: 8, right: 6, bottom: 52, left: 2 }
     : { top: 20, right: 30, bottom: 60, left: 20 };
   const xAxisTick = isModal ? { fontSize: 10, fill: "#94a3b8" } : { fontSize: 12, fill: "#94a3b8" };
   const yAxisTick = isModal ? { fontSize: 10, fill: "#94a3b8" } : { fontSize: 12, fill: "#94a3b8" };
@@ -250,7 +250,7 @@ export const EnlargedChart = ({ timeframe, data, group, layout }) => {
         </div>
       </div>
       {isModal ? (
-        <div className="w-full h-[260px] shrink-0 sm:h-[280px] lg:h-[min(520px,calc(90vh-14rem))] lg:min-h-[420px] lg:flex-1">
+        <div className="w-full h-[288px] shrink-0 sm:h-[304px] lg:h-[min(520px,calc(90vh-14rem))] lg:min-h-[420px] lg:flex-1">
           <ResponsiveContainer width="100%" height="100%">
             {lineChart}
           </ResponsiveContainer>

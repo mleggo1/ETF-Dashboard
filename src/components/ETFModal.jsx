@@ -77,9 +77,9 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-            {/* Mobile: fixed-height chart so Recharts renders; desktop unchanged (flex row + flex-[2]) */}
-            <div className="flex flex-col w-full shrink-0 min-h-[min(42vh,340px)] max-h-[min(48vh,380px)] border-b border-slate-800/60 overflow-hidden lg:min-h-0 lg:max-h-none lg:flex-[2] lg:border-b-0 lg:border-r lg:border-slate-800/60">
+          {/* Mobile: one vertical scroll — chart full width, ETF info directly below (no overlapping panes). Desktop: side-by-side unchanged. */}
+          <div className="flex-1 min-h-0 flex flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+            <div className="flex flex-col w-full shrink-0 border-b border-slate-800/60 lg:flex-[2] lg:min-h-0 lg:border-b-0 lg:border-r lg:border-slate-800/60 lg:overflow-hidden lg:flex lg:flex-col">
               <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800/60 shrink-0">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400">
@@ -105,12 +105,12 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
-              <div className="flex-1 min-h-[220px] p-3 sm:p-6 overflow-hidden flex flex-col lg:min-h-0 lg:overflow-auto">
+              <div className="p-3 sm:p-6 shrink-0 flex flex-col lg:flex-1 lg:min-h-0 lg:overflow-auto">
                 <EnlargedChart timeframe={localTimeframe} data={data} group={etf.group} layout="modal" />
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto max-h-[42vh] lg:max-h-none">
+            <div className="w-full shrink-0 lg:flex-1 lg:min-h-0 lg:overflow-y-auto">
               <ETFInfoPanel etf={etf} metadata={metadata} data={data} />
             </div>
           </div>
