@@ -50,9 +50,9 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
       >
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950" />
         <div className="relative flex flex-col h-full max-h-[90vh]">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/60">
-            <div>
-              <h2 className="text-xl font-semibold text-white">
+          <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800/60 shrink-0">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-xl font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-none">
                 {etf.symbol} – {etf.name}
               </h2>
             </div>
@@ -77,20 +77,21 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            <div className="flex-[2] flex flex-col border-r border-slate-800/60 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-800/60">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm uppercase tracking-[0.3em] text-slate-400">
+          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+            {/* Mobile: fixed-height chart so Recharts renders; desktop unchanged (flex row + flex-[2]) */}
+            <div className="flex flex-col w-full shrink-0 min-h-[min(42vh,340px)] max-h-[min(48vh,380px)] border-b border-slate-800/60 overflow-hidden lg:min-h-0 lg:max-h-none lg:flex-[2] lg:border-b-0 lg:border-r lg:border-slate-800/60">
+              <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-800/60 shrink-0">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400">
                     Price Chart
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-start sm:justify-end">
                     {["YTD", "1Y", "2Y", "5Y", "10Y", "ALL"].map((tf) => (
                       <button
                         key={tf}
                         onClick={() => setLocalTimeframe(tf)}
                         className={
-                          "px-3 py-1.5 text-xs font-medium rounded-full transition " +
+                          "px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs font-medium rounded-full transition " +
                           (localTimeframe === tf
                             ? isDefensive
                               ? "bg-blue-500/20 text-blue-200 border border-blue-400/60"
@@ -104,12 +105,12 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
-              <div className="flex-1 p-6 overflow-auto">
-                <EnlargedChart timeframe={localTimeframe} data={data} group={etf.group} />
+              <div className="flex-1 min-h-[220px] p-3 sm:p-6 overflow-hidden flex flex-col lg:min-h-0 lg:overflow-auto">
+                <EnlargedChart timeframe={localTimeframe} data={data} group={etf.group} layout="modal" />
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto max-h-[42vh] lg:max-h-none">
               <ETFInfoPanel etf={etf} metadata={metadata} data={data} />
             </div>
           </div>

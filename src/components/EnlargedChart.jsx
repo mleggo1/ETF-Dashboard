@@ -85,7 +85,8 @@ const formatCurrencyNoCents = (value, currency) => {
   }
 };
 
-export const EnlargedChart = ({ timeframe, data, group }) => {
+export const EnlargedChart = ({ timeframe, data, group, layout }) => {
+  const isModal = layout === "modal";
   const isDefensive = group === "defensive";
   
   // Color scheme: Blue for defensive, Green for growth
@@ -184,55 +185,81 @@ export const EnlargedChart = ({ timeframe, data, group }) => {
     return null;
   };
 
+  const chartMargin = isModal
+    ? { top: 8, right: 8, bottom: 44, left: 4 }
+    : { top: 20, right: 30, bottom: 60, left: 20 };
+  const xAxisTick = isModal ? { fontSize: 10, fill: "#94a3b8" } : { fontSize: 12, fill: "#94a3b8" };
+  const yAxisTick = isModal ? { fontSize: 10, fill: "#94a3b8" } : { fontSize: 12, fill: "#94a3b8" };
+  const yAxisWidth = isModal ? 56 : 80;
+  const xAxisHeight = isModal ? 56 : 80;
+
+  const lineChart = (
+    <LineChart data={filtered} margin={chartMargin}>
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={chartColors.gradientStart} stopOpacity={chartColors.gradientStartOpacity} />
+          <stop offset="100%" stopColor={chartColors.gradientEnd} stopOpacity={chartColors.gradientEndOpacity} />
+        </linearGradient>
+      </defs>
+      <XAxis
+        dataKey="date"
+        tickFormatter={(value) => formatDateLabel(value, timeframe)}
+        tick={xAxisTick}
+        stroke="#475569"
+        axisLine={{ stroke: "#475569" }}
+        tickLine={{ stroke: "#475569" }}
+        angle={isModal ? -35 : -45}
+        textAnchor="end"
+        height={xAxisHeight}
+      />
+      <YAxis
+        domain={["auto", "auto"]}
+        tickFormatter={(value) => formatCurrencyNoCents(value, data.currency)}
+        tick={yAxisTick}
+        stroke="#475569"
+        axisLine={{ stroke: "#475569" }}
+        tickLine={{ stroke: "#475569" }}
+        width={yAxisWidth}
+      />
+      <Tooltip content={<CustomTooltip />} />
+      <Line
+        type="monotone"
+        dataKey="close"
+        stroke={`url(#${gradientId})`}
+        strokeWidth={isModal ? 2.5 : 3}
+        dot={false}
+        activeDot={{ r: isModal ? 5 : 6, strokeWidth: 0, fill: chartColors.activeDot }}
+      />
+    </LineChart>
+  );
+
   return (
-    <div className="flex flex-col h-full min-h-[500px]">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-sm text-slate-300">
+    <div
+      className={
+        isModal
+          ? "flex flex-col h-full w-full min-h-0 lg:min-h-[500px]"
+          : "flex flex-col h-full min-h-[500px]"
+      }
+    >
+      <div className={`flex items-center justify-between ${isModal ? "mb-2 lg:mb-4" : "mb-4"}`}>
+        <div className={`text-slate-300 ${isModal ? "text-xs lg:text-sm" : "text-sm"}`}>
           <span className="text-slate-400">Period return: </span>
           <span className={cumulativeReturn >= 0 ? chartColors.percentagePositive : "text-rose-400"}>
             {cumulativeReturn !== null ? `${cumulativeReturn >= 0 ? "+" : ""}${cumulativeReturn}%` : "—"}
           </span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={filtered} margin={{ top: 20, right: 30, bottom: 60, left: 20 }}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={chartColors.gradientStart} stopOpacity={chartColors.gradientStartOpacity} />
-              <stop offset="100%" stopColor={chartColors.gradientEnd} stopOpacity={chartColors.gradientEndOpacity} />
-            </linearGradient>
-          </defs>
-          <XAxis
-            dataKey="date"
-            tickFormatter={(value) => formatDateLabel(value, timeframe)}
-            tick={{ fontSize: 12, fill: "#94a3b8" }}
-            stroke="#475569"
-            axisLine={{ stroke: "#475569" }}
-            tickLine={{ stroke: "#475569" }}
-            angle={-45}
-            textAnchor="end"
-            height={80}
-          />
-          <YAxis
-            domain={["auto", "auto"]}
-            tickFormatter={(value) => formatCurrencyNoCents(value, data.currency)}
-            tick={{ fontSize: 12, fill: "#94a3b8" }}
-            stroke="#475569"
-            axisLine={{ stroke: "#475569" }}
-            tickLine={{ stroke: "#475569" }}
-            width={80}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="close"
-            stroke={`url(#${gradientId})`}
-            strokeWidth={3}
-            dot={false}
-            activeDot={{ r: 6, strokeWidth: 0, fill: chartColors.activeDot }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {isModal ? (
+        <div className="w-full h-[260px] shrink-0 sm:h-[280px] lg:h-[min(520px,calc(90vh-14rem))] lg:min-h-[420px] lg:flex-1">
+          <ResponsiveContainer width="100%" height="100%">
+            {lineChart}
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          {lineChart}
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };
