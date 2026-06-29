@@ -132,7 +132,7 @@ export const Dashboard = () => {
       </div>
       <PerformanceTable />
       <p className="text-xs text-slate-400 text-right">
-        Source: Yahoo Finance · Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
+        Source: Marketstack (primary) · Yahoo Finance (fallback) · Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
       </p>
       <p className="text-sm text-slate-500 text-center pt-4">
         © 2025 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo

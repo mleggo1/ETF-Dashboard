@@ -94,7 +94,7 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
           {data?.isIntraday ? (
             <span className="text-sky-300/90">Intraday · {latestPoint.date}</span>
           ) : (
-            <>Last close {latestPoint.date}</>
+            <>Last updated {data.priceAsAtDate || latestPoint.date}</>
           )}
           {data?.dataSource && (
             <span className="block normal-case tracking-normal text-slate-500/80 mt-0.5">

@@ -5,17 +5,23 @@ import {
   isPriceStale,
   toMarketDateString,
 } from "./asxCalendar";
+import { toDashboardSymbol } from "./marketstackSymbols";
 
 export const DATA_URL = "/data/etf-prices.json";
 const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 const SPLIT_THRESHOLD = 7;
 export const CACHE_KEY = "etf-dashboard-cache";
-export const CACHE_VERSION = "2.0";
+export const CACHE_VERSION = "3.0";
 
 const RETRY_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 400;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const currencyForSymbol = (symbol) => {
+  if (symbol === "STRF" || getMarketForSymbol(symbol) === "US") return "USD";
+  return "AUD";
+};
 
 export const formatRefreshTimestamp = (date = new Date()) => {
   const day = String(date.getDate()).padStart(2, "0");
@@ -71,6 +77,15 @@ export const saveCachedData = (data, metadata) => {
   }
 };
 
+export const mergePriceHistories = (baseRecord, updateRecord) => {
+  const map = new Map();
+  (baseRecord?.prices || []).forEach((p) => map.set(p.date, p.close));
+  (updateRecord?.prices || []).forEach((p) => map.set(p.date, p.close));
+  return [...map.entries()]
+    .map(([date, close]) => ({ date, close }))
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+};
+
 const parseChartBody = (body) => {
   const chartResult = body?.chart?.result?.[0];
   if (!chartResult) {
@@ -84,7 +99,7 @@ const fetchFromApiRoute = async (symbol, { interval, range }, signal) => {
   const params = new URLSearchParams({ symbol, interval, range });
   const res = await fetch(`/api/chart?${params}`, { signal });
   if (!res.ok) {
-    throw new Error(`API route failed (${res.status})`);
+    throw new Error(`Yahoo API route failed (${res.status})`);
   }
   const body = await res.json();
   return { chartResult: parseChartBody(body), dataSource: "yahoo-api" };
@@ -109,7 +124,7 @@ const fetchFromProxy = async (symbol, { interval, range }, signal, proxyBase) =>
   const proxyUrl = `${proxyBase}${encodeURIComponent(url.toString())}`;
   const res = await fetch(proxyUrl, { signal, headers: { Accept: "application/json" } });
   if (!res.ok) {
-    throw new Error(`Proxy failed (${res.status})`);
+    throw new Error(`Yahoo proxy failed (${res.status})`);
   }
   const body = await res.json();
   return {
@@ -118,7 +133,7 @@ const fetchFromProxy = async (symbol, { interval, range }, signal, proxyBase) =>
   };
 };
 
-const CHART_SOURCES = [
+const YAHOO_SOURCES = [
   (symbol, opts, signal) => fetchFromApiRoute(symbol, opts, signal),
   (symbol, opts, signal) => fetchFromYahooDirect(symbol, opts, signal),
   (symbol, opts, signal) =>
@@ -129,7 +144,7 @@ const CHART_SOURCES = [
 
 const fetchYahooPayload = async (symbol, { interval, range }, signal) => {
   let lastError;
-  for (const source of CHART_SOURCES) {
+  for (const source of YAHOO_SOURCES) {
     for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt += 1) {
       try {
         return await source(symbol, { interval, range }, signal);
@@ -142,7 +157,7 @@ const fetchYahooPayload = async (symbol, { interval, range }, signal) => {
       }
     }
   }
-  throw lastError || new Error("All chart data sources failed");
+  throw lastError || new Error("All Yahoo fallback sources failed");
 };
 
 const extractPricePairs = (chartResult) => {
@@ -283,24 +298,25 @@ export const pickBetterRecord = (live, fallback, symbol, { fetchError } = {}) =>
       { fetchError }
     );
   }
-  if (!fallback) return enrichEtfRecord(live, symbol);
+  if (!fallback) return enrichEtfRecord(live, symbol, { fetchError });
   const liveDate = lastPriceDate(live);
   const fbDate = lastPriceDate(fallback);
   if (fbDate > liveDate) {
     return enrichEtfRecord(
-      { ...fallback, dataSource: "bundled-fallback", fromFallback: true },
+      { ...fallback, dataSource: fallback.dataSource || "bundled-fallback", fromFallback: true },
       symbol,
-      { fetchError: `Live fetch stale or failed; using bundled data through ${fbDate}` }
+      { fetchError: `Live data older than fallback through ${fbDate}` }
     );
   }
   return enrichEtfRecord(live, symbol, { fetchError });
 };
 
-export const fetchEtfSeries = async (symbol, signal) => {
+/** Yahoo Finance — fallback only (full 10y history). */
+export const fetchYahooSeries = async (symbol, signal) => {
   const [monthlyResult, dailyResult] = await Promise.all([
     fetchYahooPayload(symbol, { range: "max", interval: "1mo" }, signal),
     fetchYahooPayload(symbol, { range: "10y", interval: "1d" }, signal).catch((error) => {
-      console.warn(`Daily data unavailable for ${symbol}, using monthly only.`, error);
+      console.warn(`Daily Yahoo data unavailable for ${symbol}, using monthly only.`, error);
       return null;
     }),
   ]);
@@ -323,7 +339,7 @@ export const fetchEtfSeries = async (symbol, signal) => {
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
   if (!prices.length) {
-    throw new Error("No price points available");
+    throw new Error("No price points available from Yahoo");
   }
 
   const referenceMeta = dailyResult?.chartResult ?? monthlyResult.chartResult;
@@ -334,14 +350,146 @@ export const fetchEtfSeries = async (symbol, signal) => {
   const base = {
     symbol,
     prices,
-    currency: referenceMeta.meta?.currency || "AUD",
+    currency: referenceMeta.meta?.currency || currencyForSymbol(symbol),
     exchangeName: referenceMeta.meta?.exchangeName,
     lastUpdated: metaLastUpdated,
     dataSource,
-    fromFallback: false,
+    fromFallback: true,
   };
 
   return enrichEtfRecord(base, symbol);
+};
+
+/** Primary: Marketstack batch EOD via /api/prices. */
+const fetchMarketstackBatch = async (signal) => {
+  const res = await fetch(`/api/prices?years=1&t=${Date.now()}`, { signal });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(body.error || `Marketstack batch failed (${res.status})`);
+  }
+  return body;
+};
+
+const recordFromMarketstack = (dashboardSymbol, prices) => {
+  if (!prices?.length) return null;
+  const last = prices[prices.length - 1];
+  return {
+    symbol: dashboardSymbol,
+    prices,
+    currency: currencyForSymbol(dashboardSymbol),
+    lastUpdated: last.date,
+    dataSource: "marketstack",
+    fromFallback: false,
+  };
+};
+
+/**
+ * Fetch all ETF prices: Marketstack batch first, Yahoo fallback for stale/missing.
+ * Merges Marketstack recent EOD with bundled history for long chart ranges.
+ */
+export const fetchAllEtfPrices = async (symbols, signal, { bundledData = {}, cachedData = {} } = {}) => {
+  const errors = {};
+  let marketstackByDashboard = {};
+
+  try {
+    const batch = await fetchMarketstackBatch(signal);
+    Object.entries(batch.symbols || {}).forEach(([msSymbol, prices]) => {
+      const dashboardSymbol = toDashboardSymbol(msSymbol);
+      const record = recordFromMarketstack(dashboardSymbol, prices);
+      if (record) marketstackByDashboard[dashboardSymbol] = record;
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    errors.__marketstack = err.message || "Marketstack batch fetch failed";
+    console.warn("[marketstack]", err.message);
+  }
+
+  const results = {};
+  const needsYahoo = [];
+
+  symbols.forEach((symbol) => {
+    const msRecord = marketstackByDashboard[symbol];
+    const historyBase = bundledData[symbol] || cachedData[symbol] || null;
+
+    let candidate = null;
+    if (msRecord) {
+      candidate = {
+        ...msRecord,
+        prices: historyBase
+          ? mergePriceHistories(historyBase, msRecord)
+          : msRecord.prices,
+        dataSource: "marketstack",
+      };
+    } else if (historyBase) {
+      candidate = {
+        ...historyBase,
+        dataSource: historyBase.dataSource || "bundled-fallback",
+        fromFallback: true,
+      };
+    }
+
+    if (!candidate) {
+      needsYahoo.push(symbol);
+      return;
+    }
+
+    const enriched = enrichEtfRecord(candidate, symbol);
+    if (!msRecord || enriched.isStale) {
+      needsYahoo.push(symbol);
+      results[symbol] = enriched;
+    } else {
+      results[symbol] = enriched;
+    }
+  });
+
+  if (needsYahoo.length > 0) {
+    console.info("[fallback] Yahoo retry for:", needsYahoo.join(", "));
+    const yahooResults = await Promise.allSettled(
+      needsYahoo.map((symbol) => fetchYahooSeries(symbol, signal))
+    );
+
+    yahooResults.forEach((result, index) => {
+      const symbol = needsYahoo[index];
+      const existing = results[symbol];
+
+      if (result.status === "fulfilled") {
+        const yahoo = result.value;
+        const mergedYahoo = historyBaseMerge(bundledData[symbol] || cachedData[symbol], yahoo);
+        const picked = pickBetterRecord(mergedYahoo, existing, symbol, {
+          fetchError: existing?.isStale
+            ? "Marketstack stale — refreshed from Yahoo fallback"
+            : errors.__marketstack
+              ? "Marketstack unavailable — used Yahoo fallback"
+              : null,
+        });
+        results[symbol] = picked || enrichEtfRecord(mergedYahoo, symbol);
+      } else {
+        const message = result.reason?.message || "Yahoo fallback failed";
+        errors[symbol] = message;
+        if (existing) {
+          results[symbol] = enrichEtfRecord(existing, symbol, { fetchError: message });
+        }
+      }
+    });
+  }
+
+  return { data: results, errors };
+};
+
+const historyBaseMerge = (base, update) => {
+  if (!base?.prices) return update;
+  return {
+    ...update,
+    prices: mergePriceHistories(base, update),
+    dataSource: update.dataSource || "yahoo",
+  };
+};
+
+/** @deprecated Use fetchAllEtfPrices for batch loading. */
+export const fetchEtfSeries = async (symbol, signal) => {
+  const { data, errors } = await fetchAllEtfPrices([symbol], signal);
+  if (data[symbol]) return data[symbol];
+  throw new Error(errors[symbol] || errors.__marketstack || "Failed to fetch ETF data");
 };
 
 export const getMostRecentPriceDate = (etfData) => {
