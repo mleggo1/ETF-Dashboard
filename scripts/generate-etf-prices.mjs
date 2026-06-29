@@ -21,7 +21,10 @@ const fetchYahooSeries = async (symbol) => {
   url.searchParams.set("range", "10y");
 
   const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0 (compatible; ETFDashboard/1.0)",
+    },
   });
   if (!res.ok) {
     throw new Error(`Request failed for ${symbol} (${res.status}): ${res.statusText}`);
@@ -102,6 +105,11 @@ const main = async () => {
     data,
     errors,
   };
+
+  if (Object.keys(data).length === 0 && fs.existsSync(outputPath)) {
+    console.error("All fetches failed — keeping existing etf-prices.json");
+    process.exit(1);
+  }
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(payload), "utf8");

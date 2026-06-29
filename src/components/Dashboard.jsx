@@ -14,6 +14,7 @@ export const Dashboard = () => {
     errors,
     lastRefreshTimestamp,
     dataAsAtDate,
+    staleWarnings,
   } = React.useContext(AppContext);
   const [selectedETF, setSelectedETF] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,6 +95,31 @@ export const Dashboard = () => {
           </div>
         </div>
       </header>
+
+      {Object.keys(staleWarnings).length > 0 && (
+        <div
+          className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+          role="alert"
+        >
+          <p className="font-medium text-amber-200">Some ETF prices may be stale</p>
+          <ul className="mt-2 space-y-1 text-xs text-amber-100/90">
+            {Object.entries(staleWarnings).map(([symbol, info]) => (
+              <li key={symbol}>
+                <span className="font-semibold">{symbol}</span>: {info.message}
+                {info.dataSource ? (
+                  <span className="text-amber-200/70"> · Source: {info.dataSource}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {errors?.__root && (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs text-rose-200">
+          {errors.__root}
+        </div>
+      )}
       
       {/* Compact timeframe toolbar on the left */}
       <div className="flex justify-start">

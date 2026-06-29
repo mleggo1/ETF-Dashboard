@@ -1,217 +1,27 @@
 import React, { useEffect, useState, createContext, useCallback, useMemo } from "react";
 import { Dashboard } from "./components/Dashboard";
 import etfConfig from "./data/etfs.json";
+import {
+  buildStaleWarnings,
+  DATA_URL,
+  enrichAllRecords,
+  fetchEtfSeries,
+  fetchFallbackDataset,
+  formatRefreshTimestamp,
+  getMostRecentPriceDate,
+  loadCachedData,
+  pickBetterRecord,
+  saveCachedData,
+} from "./utils/marketData";
+import { getExpectedLatestTradingDay } from "./utils/asxCalendar";
 
 export const AppContext = createContext();
 
-const DATA_URL = "/data/etf-prices.json";
-const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
-const SPLIT_THRESHOLD = 7; // detect >7x jumps as split indicators
-const CACHE_KEY = "etf-dashboard-cache";
-const CACHE_VERSION = "1.0";
-
-// localStorage utilities for persistent caching
-const loadCachedData = () => {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-    const parsed = JSON.parse(cached);
-    // Validate cache structure
-    if (parsed && parsed.data && typeof parsed.data === "object") {
-      return parsed;
-    }
-  } catch (error) {
-    console.warn("Failed to load cached data:", error);
-  }
-  return null;
-};
-
-const saveCachedData = (data, metadata) => {
-  const cache = {
-    version: CACHE_VERSION,
-    data: data,
-    lastUpdated: metadata.lastUpdated,
-    generatedAt: metadata.generatedAt,
-    dataAsAtDate: metadata.dataAsAtDate,
-    lastRefreshTimestamp: metadata.lastRefreshTimestamp,
-    cachedAt: new Date().toISOString(),
-  };
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch (error) {
-    console.warn("Failed to save cached data:", error);
-    // If quota exceeded, try to clear old cache and retry
-    try {
-      localStorage.removeItem(CACHE_KEY);
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-    } catch (retryError) {
-      console.error("Failed to save cached data after retry:", retryError);
-    }
-  }
-};
-
-const formatRefreshTimestamp = (date = new Date()) => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  const displayHours = hours % 12 || 12;
-  return `${day}/${month}/${year}, ${displayHours}:${minutes}:${seconds} ${ampm}`;
-};
-
-const fetchYahooPayload = async (symbol, { interval, range }, signal) => {
-  const url = new URL(symbol, YAHOO_CHART_ENDPOINT);
-  url.searchParams.set("interval", interval);
-  url.searchParams.set("range", range);
-  
-  // Use CORS proxy to avoid browser CORS restrictions
-  const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url.toString())}`;
-  
-  let res;
-  try {
-    res = await fetch(proxyUrl, { 
-      signal,
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-  } catch (networkError) {
-    // If proxy fails, try direct (might work in some environments)
-    try {
-      res = await fetch(url.toString(), { 
-        signal,
-        mode: 'cors',
-      });
-    } catch (directError) {
-      throw new Error(`Network error: Unable to fetch data. ${networkError.message || directError.message}`);
-    }
-  }
-  
-  if (!res.ok) {
-    throw new Error(`Request failed (${res.status}): ${res.statusText}`);
-  }
-  
-  let body;
-  try {
-    body = await res.json();
-  } catch (parseError) {
-    throw new Error(`Failed to parse response: ${parseError.message}`);
-  }
-  
-  const chartResult = body?.chart?.result?.[0];
-  if (!chartResult) {
-    const message = body?.chart?.error?.description || "No chart data returned";
-    throw new Error(message);
-  }
-  return chartResult;
-};
-
-const extractPricePairs = (chartResult) => {
-  const timestamps = chartResult.timestamp ?? [];
-  const adjCloseSeries = chartResult.indicators?.adjclose?.[0]?.adjclose;
-  const closeSeries = chartResult.indicators?.quote?.[0]?.close;
-  const prices = adjCloseSeries && adjCloseSeries.length ? adjCloseSeries : closeSeries ?? [];
-  const pairs = [];
-  for (let i = 0; i < timestamps.length; i += 1) {
-    const ts = timestamps[i];
-    const value = prices[i];
-    if (typeof ts !== "number") continue;
-    if (value === null || value === undefined || Number.isNaN(value)) continue;
-    const date = new Date(ts * 1000).toISOString().slice(0, 10);
-    pairs.push([date, Number.parseFloat(Number(value).toFixed(2))]);
-  }
-  return pairs;
-};
-
-const normalizeForSplits = (pairs) => {
-  if (!pairs.length) return [];
-  const sorted = [...pairs]
-    .map(([date, close]) => ({ date, close }))
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-
-  const adjusted = new Array(sorted.length);
-  let factor = 1;
-  adjusted[sorted.length - 1] = {
-    ...sorted[sorted.length - 1],
-    close: Number(sorted[sorted.length - 1].close.toFixed(2)),
-  };
-
-  for (let i = sorted.length - 2; i >= 0; i -= 1) {
-    const current = sorted[i];
-    const nextRaw = sorted[i + 1];
-    if (current.close && nextRaw.close) {
-      const ratio = current.close / nextRaw.close;
-      const inverse = nextRaw.close / current.close;
-      if (ratio > SPLIT_THRESHOLD) {
-        factor *= ratio;
-      } else if (inverse > SPLIT_THRESHOLD) {
-        factor /= inverse;
-      }
-    }
-    adjusted[i] = {
-      ...current,
-      close: Number((current.close / factor).toFixed(2)),
-    };
-  }
-
-  return adjusted;
-};
-
-const fetchYahooSeries = async (symbol, signal) => {
-  const [monthly, daily] = await Promise.all([
-    fetchYahooPayload(symbol, { range: "max", interval: "1mo" }, signal),
-    fetchYahooPayload(symbol, { range: "10y", interval: "1d" }, signal).catch((error) => {
-      console.warn(`Daily data unavailable for ${symbol}, using monthly only.`, error);
-      return null;
-    }),
-  ]);
-
-  const combined = extractPricePairs(monthly);
-  if (daily) {
-    extractPricePairs(daily).forEach((pair) => combined.push(pair));
-  }
-  const normalized = normalizeForSplits(combined);
-
-  const deduped = new Map();
-  normalized.forEach(({ date, close }) => {
-    deduped.set(date, close);
-  });
-
-  const prices = [...deduped.entries()]
-    .map(([date, close]) => ({ date, close }))
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-
-  if (!prices.length) {
-    throw new Error("No price points available");
-  }
-
-  const referenceMeta = daily ?? monthly;
-  const lastUpdated =
-    referenceMeta.meta?.regularMarketTime
-      ? new Date(referenceMeta.meta.regularMarketTime * 1000).toISOString().slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
-
-  return {
-    symbol,
-    prices,
-    currency: referenceMeta.meta?.currency || "AUD",
-    exchangeName: referenceMeta.meta?.exchangeName,
-    lastUpdated,
-  };
-};
-
 export default function App() {
-  // Load cached data immediately on mount for instant display
   const cachedData = loadCachedData();
-  
-  // For first-time visitors, try to load fallback dataset immediately
   const [initialFallbackData, setInitialFallbackData] = useState(null);
-  
+
   useEffect(() => {
-    // If no cache exists, immediately try to load fallback dataset
     if (!cachedData && !initialFallbackData) {
       fetch(DATA_URL)
         .then((res) => {
@@ -219,213 +29,171 @@ export default function App() {
           throw new Error(`Failed to load dataset (${res.status})`);
         })
         .then((payload) => {
-          if (payload?.data) {
-            setInitialFallbackData(payload);
-          }
+          if (payload?.data) setInitialFallbackData(payload);
         })
-        .catch((err) => {
-          console.warn("Failed to preload fallback dataset:", err);
-        });
+        .catch((err) => console.warn("Failed to preload fallback dataset:", err));
     }
   }, [cachedData, initialFallbackData]);
-  
-  // Use cached data, or initial fallback data, or empty
-  const initialData = cachedData?.data || initialFallbackData?.data || {};
-  const initialLastUpdated = cachedData?.lastUpdated || initialFallbackData?.lastUpdated || null;
-  const initialGeneratedAt = cachedData?.generatedAt || initialFallbackData?.generatedAt || null;
-  const initialDataAsAtDate = cachedData?.dataAsAtDate || null;
-  const initialRefreshTimestamp = cachedData?.lastRefreshTimestamp || null;
-  
+
+  const initialDataRaw = cachedData?.data || initialFallbackData?.data || {};
+  const initialData = enrichAllRecords(initialDataRaw);
+
   const [globalTimeframe, setGlobalTimeframe] = useState("YTD");
   const [etfData, setEtfData] = useState(initialData);
-  const [lastUpdated, setLastUpdated] = useState(initialLastUpdated);
-  const [loading, setLoading] = useState(!cachedData && !initialFallbackData); // Only show loading if no cache and no fallback
+  const [lastUpdated, setLastUpdated] = useState(
+    cachedData?.lastUpdated || initialFallbackData?.lastUpdated || null
+  );
+  const [loading, setLoading] = useState(!cachedData && !initialFallbackData);
   const [errors, setErrors] = useState({});
-  const [generatedAt, setGeneratedAt] = useState(initialGeneratedAt);
-  const [dataAsAtDate, setDataAsAtDate] = useState(initialDataAsAtDate);
-  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(initialRefreshTimestamp);
-  
-  // Update state when initial fallback data loads
+  const [generatedAt, setGeneratedAt] = useState(
+    cachedData?.generatedAt || initialFallbackData?.generatedAt || null
+  );
+  const [dataAsAtDate, setDataAsAtDate] = useState(cachedData?.dataAsAtDate || null);
+  const [lastRefreshTimestamp, setLastRefreshTimestamp] = useState(
+    cachedData?.lastRefreshTimestamp || null
+  );
+
   useEffect(() => {
     if (initialFallbackData && !cachedData) {
-      setEtfData(initialFallbackData.data || {});
+      const enriched = enrichAllRecords(initialFallbackData.data || {});
+      setEtfData(enriched);
+      const mostRecent = getMostRecentPriceDate(enriched);
       setLastUpdated(initialFallbackData.lastUpdated || initialFallbackData.generatedAt || null);
       setGeneratedAt(initialFallbackData.generatedAt || null);
+      setDataAsAtDate(mostRecent || initialFallbackData.generatedAt || null);
       setLoading(false);
-      
-      // Find most recent price date
-      let mostRecentDate = null;
-      if (initialFallbackData.data) {
-        Object.values(initialFallbackData.data).forEach((etf) => {
-          if (etf?.prices && etf.prices.length > 0) {
-            const lastDate = etf.prices[etf.prices.length - 1].date;
-            if (!mostRecentDate || lastDate > mostRecentDate) {
-              mostRecentDate = lastDate;
-            }
-          }
-        });
-      }
-      setDataAsAtDate(mostRecentDate || initialFallbackData.generatedAt || null);
-      
-      // Save to cache for next time
-      if (Object.keys(initialFallbackData.data || {}).length > 0) {
+
+      if (Object.keys(enriched).length > 0) {
         const refreshTimestamp = formatRefreshTimestamp(new Date());
         setLastRefreshTimestamp(refreshTimestamp);
-        saveCachedData(initialFallbackData.data, {
+        saveCachedData(enriched, {
           lastUpdated: initialFallbackData.lastUpdated || initialFallbackData.generatedAt || null,
           generatedAt: initialFallbackData.generatedAt || null,
-          dataAsAtDate: mostRecentDate || initialFallbackData.generatedAt || null,
+          dataAsAtDate: mostRecent || initialFallbackData.generatedAt || null,
           lastRefreshTimestamp: refreshTimestamp,
+          expectedTradingDay: getExpectedLatestTradingDay(new Date(), "ASX"),
         });
       }
     }
   }, [initialFallbackData, cachedData]);
+
+  const applyDataset = useCallback((finalData, meta) => {
+    const enriched = enrichAllRecords(finalData);
+    setEtfData(enriched);
+    setErrors(meta.errors || {});
+    setLastUpdated(meta.lastUpdated);
+    setGeneratedAt(meta.generatedAt);
+    setDataAsAtDate(meta.dataAsAtDate);
+    setLastRefreshTimestamp(meta.lastRefreshTimestamp);
+
+    if (Object.keys(enriched).length > 0) {
+      saveCachedData(enriched, {
+        lastUpdated: meta.lastUpdated,
+        generatedAt: meta.generatedAt,
+        dataAsAtDate: meta.dataAsAtDate,
+        lastRefreshTimestamp: meta.lastRefreshTimestamp,
+        expectedTradingDay: meta.expectedTradingDay,
+      });
+    }
+  }, []);
+
+  const mergeLiveAndFallback = useCallback((liveResults, fallbackPayload, nextErrors) => {
+    const fallbackData = fallbackPayload?.data || {};
+    const finalData = {};
+    const errorsOut = { ...(fallbackPayload?.errors || {}), ...nextErrors };
+
+    etfConfig.forEach(({ symbol }, index) => {
+      const live = liveResults[index]?.status === "fulfilled" ? liveResults[index].value : null;
+      const fallback = fallbackData[symbol];
+      const fetchError =
+        liveResults[index]?.status === "rejected"
+          ? liveResults[index].reason?.message || "Failed to fetch live data"
+          : null;
+
+      if (!live && fetchError) {
+        errorsOut[symbol] = fetchError;
+      }
+
+      const picked = pickBetterRecord(live, fallback, symbol, { fetchError });
+      if (picked) finalData[symbol] = picked;
+    });
+
+    return { finalData, errorsOut };
+  }, []);
 
   const loadData = useCallback(
     async ({ signal, allowFallback = true } = {}) => {
       setLoading(true);
       setErrors({});
 
-      const fetchFallbackDataset = async () => {
-        const response = await fetch(`${DATA_URL}?t=${Date.now()}`, { signal });
-        if (!response.ok) {
-          throw new Error(`Failed to load dataset (${response.status})`);
-        }
-        return response.json();
-      };
-
       try {
         const liveResults = await Promise.allSettled(
-          etfConfig.map(({ symbol }) => fetchYahooSeries(symbol, signal))
+          etfConfig.map(({ symbol }) => fetchEtfSeries(symbol, signal))
         );
 
-        if (signal?.aborted) {
-          return;
-        }
+        if (signal?.aborted) return;
 
-        const nextData = {};
+        const failedCount = liveResults.filter((r) => r.status === "rejected").length;
         const nextErrors = {};
-        const failedSymbols = [];
-        let freshestDate = null;
-        let mostRecentPriceDate = null;
-
         liveResults.forEach((result, index) => {
-          const { symbol } = etfConfig[index];
-          if (result.status === "fulfilled") {
-            nextData[symbol] = result.value;
-            const updated = result.value.lastUpdated;
-            if (updated) {
-              if (!freshestDate || new Date(updated) > new Date(freshestDate)) {
-                freshestDate = updated;
-              }
-            }
-            // Find the most recent price date from the price series
-            const prices = result.value.prices;
-            if (prices && prices.length > 0) {
-              const lastPriceDate = prices[prices.length - 1].date;
-              if (!mostRecentPriceDate || lastPriceDate > mostRecentPriceDate) {
-                mostRecentPriceDate = lastPriceDate;
-              }
-            }
-          } else {
-            failedSymbols.push(symbol);
-            nextErrors[symbol] = result.reason?.message || "Failed to fetch live data";
+          if (result.status === "rejected") {
+            nextErrors[etfConfig[index].symbol] =
+              result.reason?.message || "Failed to fetch live data";
           }
         });
 
-        if (failedSymbols.length === etfConfig.length && allowFallback) {
-          // Everything failed – fallback to bundled dataset
-          const payload = await fetchFallbackDataset();
-          if (signal?.aborted) return;
-            const fallbackData = payload?.data || {};
-            setEtfData(fallbackData);
-            setErrors(payload?.errors || {});
-            const fallbackTimestamp = payload?.generatedAt || payload?.lastUpdated || null;
-            setLastUpdated(payload?.lastUpdated || fallbackTimestamp);
-            setGeneratedAt(fallbackTimestamp);
-            // Try to find most recent price date from fallback data
-            let fallbackMostRecentDate = null;
-            if (payload?.data) {
-              Object.values(payload.data).forEach((etf) => {
-                if (etf?.prices && etf.prices.length > 0) {
-                  const lastDate = etf.prices[etf.prices.length - 1].date;
-                  if (!fallbackMostRecentDate || lastDate > fallbackMostRecentDate) {
-                    fallbackMostRecentDate = lastDate;
-                  }
-                }
-              });
-            }
-            setDataAsAtDate(fallbackMostRecentDate || fallbackTimestamp);
-            
-            // Set initial refresh timestamp on first load
-            const refreshTimestamp = formatRefreshTimestamp(new Date());
-            setLastRefreshTimestamp(refreshTimestamp);
-            
-            // Save to localStorage for instant load on next visit
-            if (Object.keys(fallbackData).length > 0) {
-              saveCachedData(fallbackData, {
-                lastUpdated: payload?.lastUpdated || fallbackTimestamp,
-                generatedAt: fallbackTimestamp,
-                dataAsAtDate: fallbackMostRecentDate || fallbackTimestamp,
-                lastRefreshTimestamp: refreshTimestamp,
-              });
-            }
-        } else {
-          let fallbackPayload = null;
-          if (failedSymbols.length > 0 && allowFallback) {
-            try {
-              fallbackPayload = await fetchFallbackDataset();
-            } catch (cacheErr) {
-              console.warn("Failed to load fallback dataset for partial errors", cacheErr);
-              nextErrors.__fallback = cacheErr.message || "Failed to load fallback dataset";
-            }
+        let fallbackPayload = null;
+        if (allowFallback && (failedCount > 0 || failedCount === etfConfig.length)) {
+          try {
+            fallbackPayload = await fetchFallbackDataset(signal);
+          } catch (cacheErr) {
+            console.warn("Failed to load fallback dataset", cacheErr);
+            nextErrors.__fallback = cacheErr.message || "Failed to load fallback dataset";
           }
+        }
 
-          const fallbackData = fallbackPayload?.data || {};
-          const fallbackErrors = fallbackPayload?.errors || {};
-          const fallbackTimestamp = fallbackPayload?.generatedAt || fallbackPayload?.lastUpdated || null;
-
-          const finalData = {};
+        if (failedCount === etfConfig.length && allowFallback && fallbackPayload?.data) {
+          if (signal?.aborted) return;
+          const enrichedFallback = {};
           etfConfig.forEach(({ symbol }) => {
-            if (nextData[symbol]) {
-              finalData[symbol] = nextData[symbol];
-            } else if (fallbackData[symbol]) {
-              finalData[symbol] = fallbackData[symbol];
+            if (fallbackPayload.data[symbol]) {
+              enrichedFallback[symbol] = pickBetterRecord(null, fallbackPayload.data[symbol], symbol, {
+                fetchError: "All live sources failed",
+              });
             }
           });
-          if (!Object.keys(finalData).length && Object.keys(fallbackData).length) {
-            Object.assign(finalData, fallbackData);
-          }
-
-          const finalErrors = { ...fallbackErrors, ...nextErrors };
-          const finalLastUpdated =
-            Object.keys(nextData).length > 0
-              ? freshestDate || fallbackTimestamp || new Date().toISOString().slice(0, 10)
-              : fallbackTimestamp || freshestDate || new Date().toISOString().slice(0, 10);
-          const finalGeneratedAt =
-            Object.keys(nextData).length > 0
-              ? new Date().toISOString()
-              : fallbackTimestamp || new Date().toISOString();
-          const finalDataAsAtDate = mostRecentPriceDate || finalLastUpdated;
-
-          setEtfData(finalData);
-          setErrors(finalErrors);
-          setLastUpdated(finalLastUpdated);
-          setGeneratedAt(finalGeneratedAt);
-          setDataAsAtDate(finalDataAsAtDate);
-          // Set initial refresh timestamp on first load
+          const mostRecent = getMostRecentPriceDate(enrichedFallback);
           const refreshTimestamp = formatRefreshTimestamp(new Date());
-          setLastRefreshTimestamp(refreshTimestamp);
-          
-          // Save to localStorage for instant load on next visit
-          if (Object.keys(finalData).length > 0) {
-            saveCachedData(finalData, {
-              lastUpdated: finalLastUpdated,
-              generatedAt: finalGeneratedAt,
-              dataAsAtDate: finalDataAsAtDate,
-              lastRefreshTimestamp: refreshTimestamp,
-            });
-          }
+          applyDataset(enrichedFallback, {
+            errors: { ...fallbackPayload.errors, ...nextErrors, __root: "Using bundled fallback — live fetch failed" },
+            lastUpdated: fallbackPayload.lastUpdated || fallbackPayload.generatedAt,
+            generatedAt: fallbackPayload.generatedAt || new Date().toISOString(),
+            dataAsAtDate: mostRecent || fallbackPayload.generatedAt,
+            lastRefreshTimestamp: refreshTimestamp,
+            expectedTradingDay: getExpectedLatestTradingDay(new Date(), "ASX"),
+          });
+          return;
+        }
+
+        const { finalData, errorsOut } = mergeLiveAndFallback(liveResults, fallbackPayload, nextErrors);
+        const mostRecent = getMostRecentPriceDate(finalData);
+        const refreshTimestamp = formatRefreshTimestamp(new Date());
+        const liveCount = liveResults.filter((r) => r.status === "fulfilled").length;
+
+        applyDataset(finalData, {
+          errors: errorsOut,
+          lastUpdated: mostRecent || new Date().toISOString().slice(0, 10),
+          generatedAt: new Date().toISOString(),
+          dataAsAtDate: mostRecent,
+          lastRefreshTimestamp: refreshTimestamp,
+          expectedTradingDay: getExpectedLatestTradingDay(new Date(), "ASX"),
+        });
+
+        if (liveCount === 0 && !fallbackPayload) {
+          setErrors((prev) => ({
+            ...prev,
+            __root: "Could not refresh live data and no fallback available",
+          }));
         }
       } catch (err) {
         if (signal?.aborted) return;
@@ -433,41 +201,20 @@ export default function App() {
         setErrors({ __root: err.message || "Failed to refresh dataset" });
         if (allowFallback) {
           try {
-            const payload = await fetchFallbackDataset();
+            const payload = await fetchFallbackDataset(signal);
             if (signal?.aborted) return;
-            setEtfData(payload?.data || {});
-            setErrors((prev) => ({ ...prev, ...(payload?.errors || {}) }));
-            const fallbackTimestamp = payload?.generatedAt || payload?.lastUpdated || null;
-            setLastUpdated(payload?.lastUpdated || fallbackTimestamp);
-            setGeneratedAt(fallbackTimestamp);
-            // Try to find most recent price date from fallback data
-            let fallbackMostRecentDate = null;
-            if (payload?.data) {
-              Object.values(payload.data).forEach((etf) => {
-                if (etf?.prices && etf.prices.length > 0) {
-                  const lastDate = etf.prices[etf.prices.length - 1].date;
-                  if (!fallbackMostRecentDate || lastDate > fallbackMostRecentDate) {
-                    fallbackMostRecentDate = lastDate;
-                  }
-                }
-              });
-            }
-            setDataAsAtDate(fallbackMostRecentDate || fallbackTimestamp);
-            
-            // Save to localStorage for instant load on next visit
-            const errorFallbackData = payload?.data || {};
-            if (Object.keys(errorFallbackData).length > 0) {
-              const refreshTimestamp = formatRefreshTimestamp(new Date());
-              saveCachedData(errorFallbackData, {
-                lastUpdated: payload?.lastUpdated || fallbackTimestamp,
-                generatedAt: fallbackTimestamp,
-                dataAsAtDate: fallbackMostRecentDate || fallbackTimestamp,
-                lastRefreshTimestamp: refreshTimestamp,
-              });
-            }
+            const enrichedFallback = enrichAllRecords(payload?.data || {});
+            const mostRecent = getMostRecentPriceDate(enrichedFallback);
+            applyDataset(enrichedFallback, {
+              errors: { ...(payload?.errors || {}), __root: err.message },
+              lastUpdated: payload?.lastUpdated || payload?.generatedAt,
+              generatedAt: payload?.generatedAt || new Date().toISOString(),
+              dataAsAtDate: mostRecent || payload?.generatedAt,
+              lastRefreshTimestamp: formatRefreshTimestamp(new Date()),
+              expectedTradingDay: getExpectedLatestTradingDay(new Date(), "ASX"),
+            });
           } catch (fallbackErr) {
             if (signal?.aborted) return;
-            console.error(fallbackErr);
             setErrors((prev) => ({
               ...prev,
               __fallback: fallbackErr.message || "Failed to load fallback dataset",
@@ -475,105 +222,89 @@ export default function App() {
           }
         }
       } finally {
-        if (!signal?.aborted) {
-          setLoading(false);
-        }
+        if (!signal?.aborted) setLoading(false);
       }
     },
-    []
+    [applyDataset, mergeLiveAndFallback]
   );
 
   useEffect(() => {
     const controller = new AbortController();
     loadData({ signal: controller.signal });
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, [loadData]);
 
   const handleRefreshData = useCallback(async () => {
     setLoading(true);
     setErrors({});
-
-    // Preserve current data as fallback
     const currentData = { ...etfData };
 
     try {
-      // Force fresh fetch from Yahoo Finance
       const liveResults = await Promise.allSettled(
-        etfConfig.map(({ symbol }) => fetchYahooSeries(symbol))
+        etfConfig.map(({ symbol }) => fetchEtfSeries(symbol))
       );
 
-      const nextData = { ...currentData }; // Start with current data
-      const nextErrors = {};
-      let mostRecentPriceDate = null;
-      let hasNewData = false;
+      let fallbackPayload = null;
+      const failedCount = liveResults.filter((r) => r.status === "rejected").length;
+      if (failedCount > 0) {
+        try {
+          fallbackPayload = await fetchFallbackDataset();
+        } catch (e) {
+          console.warn("Fallback unavailable during manual refresh", e);
+        }
+      }
 
-      liveResults.forEach((result, index) => {
-        const { symbol } = etfConfig[index];
-        if (result.status === "fulfilled") {
-          nextData[symbol] = result.value;
-          hasNewData = true;
-          // Find the most recent price date from the price series
-          const prices = result.value.prices;
-          if (prices && prices.length > 0) {
-            const lastPriceDate = prices[prices.length - 1].date;
-            if (!mostRecentPriceDate || lastPriceDate > mostRecentPriceDate) {
-              mostRecentPriceDate = lastPriceDate;
-            }
-          }
+      const nextErrors = {};
+      const nextData = { ...currentData };
+
+      etfConfig.forEach(({ symbol }, index) => {
+        const live = liveResults[index]?.status === "fulfilled" ? liveResults[index].value : null;
+        const fallback = fallbackPayload?.data?.[symbol];
+        const fetchError =
+          liveResults[index]?.status === "rejected"
+            ? liveResults[index].reason?.message
+            : null;
+
+        if (live) {
+          nextData[symbol] = pickBetterRecord(live, fallback, symbol, { fetchError });
         } else {
-          // Keep existing data for this symbol if fetch failed
-          if (!nextData[symbol]) {
-            nextErrors[symbol] = result.reason?.message || "Failed to fetch live data";
+          const existing = currentData[symbol];
+          if (existing || fallback) {
+            nextData[symbol] = pickBetterRecord(existing, fallback, symbol, {
+              fetchError:
+                fetchError || (existing ? "Refresh failed — using last known data" : null),
+            });
           } else {
-            // We have fallback data, just log the error
-            console.warn(`Failed to refresh ${symbol}:`, result.reason?.message);
-            nextErrors[symbol] = `Refresh failed, using cached data: ${result.reason?.message}`;
+            nextErrors[symbol] = fetchError || "Failed to fetch live data";
           }
         }
       });
 
-      // Only update if we got at least some new data, or preserve existing
-      if (hasNewData || Object.keys(nextData).length > 0) {
-        setEtfData(nextData);
-      }
-      setErrors(nextErrors);
-      
-      // Set dataAsAtDate from most recent price date
-      const refreshDataAsAtDate = mostRecentPriceDate || 
-        (Object.values(nextData).length > 0 && Object.values(nextData)[0]?.prices?.length > 0
-          ? Object.values(nextData)[0].prices[Object.values(nextData)[0].prices.length - 1].date
-          : new Date().toISOString().slice(0, 10));
-      setDataAsAtDate(refreshDataAsAtDate);
-      setLastUpdated(refreshDataAsAtDate);
-
-      // Set refresh timestamp in DD/MM/YYYY, h:mm:ss A format
+      const mostRecent = getMostRecentPriceDate(nextData);
       const refreshTimestamp = formatRefreshTimestamp(new Date());
-      setLastRefreshTimestamp(refreshTimestamp);
-      setGeneratedAt(new Date().toISOString());
-      
-      // Save to localStorage for instant load on next visit
-      if (Object.keys(nextData).length > 0) {
-        saveCachedData(nextData, {
-          lastUpdated: refreshDataAsAtDate,
-          generatedAt: new Date().toISOString(),
-          dataAsAtDate: refreshDataAsAtDate,
-          lastRefreshTimestamp: refreshTimestamp,
-        });
-      }
+
+      applyDataset(nextData, {
+        errors: nextErrors,
+        lastUpdated: mostRecent,
+        generatedAt: new Date().toISOString(),
+        dataAsAtDate: mostRecent,
+        lastRefreshTimestamp: refreshTimestamp,
+        expectedTradingDay: getExpectedLatestTradingDay(new Date(), "ASX"),
+      });
     } catch (err) {
       console.error(err);
-      // Keep existing data on error
-      setEtfData(currentData);
-      setErrors({ __root: err.message || "Couldn't refresh data. Using cached data. Please try again." });
-      // Still update timestamp to show we tried
-      const refreshTimestamp = formatRefreshTimestamp(new Date());
-      setLastRefreshTimestamp(refreshTimestamp);
+      const enriched = enrichAllRecords(currentData);
+      setEtfData(enriched);
+      setErrors({
+        __root: err.message || "Couldn't refresh data. Using cached data. Please try again.",
+      });
+      setLastRefreshTimestamp(formatRefreshTimestamp(new Date()));
     } finally {
       setLoading(false);
     }
-  }, [etfData]);
+  }, [etfData, applyDataset]);
+
+  const staleWarnings = useMemo(() => buildStaleWarnings(etfData), [etfData]);
 
   const contextValue = useMemo(
     () => ({
@@ -587,6 +318,7 @@ export default function App() {
       generatedAt,
       dataAsAtDate,
       lastRefreshTimestamp,
+      staleWarnings,
       reloadData: handleRefreshData,
     }),
     [
@@ -598,6 +330,7 @@ export default function App() {
       generatedAt,
       dataAsAtDate,
       lastRefreshTimestamp,
+      staleWarnings,
       handleRefreshData,
     ]
   );
@@ -610,4 +343,3 @@ export default function App() {
     </AppContext.Provider>
   );
 }
-

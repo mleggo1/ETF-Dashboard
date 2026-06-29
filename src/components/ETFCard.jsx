@@ -91,7 +91,21 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
       </div>
       {latestPoint?.date && (
         <div className="text-right text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-slate-400/70">
-          Last close {latestPoint.date}
+          {data?.isIntraday ? (
+            <span className="text-sky-300/90">Intraday · {latestPoint.date}</span>
+          ) : (
+            <>Last close {latestPoint.date}</>
+          )}
+          {data?.dataSource && (
+            <span className="block normal-case tracking-normal text-slate-500/80 mt-0.5">
+              via {data.dataSource}
+            </span>
+          )}
+        </div>
+      )}
+      {data?.isStale && data?.staleReason && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[10px] sm:text-[11px] text-amber-200 leading-snug">
+          {data.staleReason}
         </div>
       )}
       <div
