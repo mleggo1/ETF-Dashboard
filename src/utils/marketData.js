@@ -312,17 +312,8 @@ export const pickBetterRecord = (live, fallback, symbol, { fetchError } = {}) =>
 };
 
 /** Yahoo Finance — fallback only (full 10y history). */
-export const fetchYahooSeries = async (symbol, signal) => {
-  const [monthlyResult, dailyResult] = await Promise.all([
-    fetchYahooPayload(symbol, { range: "max", interval: "1mo" }, signal),
-    fetchYahooPayload(symbol, { range: "10y", interval: "1d" }, signal).catch((error) => {
-      console.warn(`Daily Yahoo data unavailable for ${symbol}, using monthly only.`, error);
-      return null;
-    }),
-  ]);
-
-  const dataSource = dailyResult?.dataSource || monthlyResult.dataSource || "yahoo";
-
+const buildYahooRecord = (symbol, chartResults, dataSource) => {
+  const [monthlyResult, dailyResult] = chartResults;
   const combined = extractPricePairs(monthlyResult.chartResult);
   if (dailyResult) {
     extractPricePairs(dailyResult.chartResult).forEach((pair) => combined.push(pair));
@@ -347,13 +338,54 @@ export const fetchYahooSeries = async (symbol, signal) => {
     ? new Date(referenceMeta.meta.regularMarketTime * 1000).toISOString().slice(0, 10)
     : prices[prices.length - 1].date;
 
-  const base = {
+  return {
     symbol,
     prices,
     currency: referenceMeta.meta?.currency || currencyForSymbol(symbol),
     exchangeName: referenceMeta.meta?.exchangeName,
     lastUpdated: metaLastUpdated,
     dataSource,
+    fromFallback: true,
+  };
+};
+
+export const fetchYahooSeries = async (symbol, signal) => {
+  const [monthlyResult, dailyResult] = await Promise.all([
+    fetchYahooPayload(symbol, { range: "max", interval: "1mo" }, signal),
+    fetchYahooPayload(symbol, { range: "10y", interval: "1d" }, signal).catch((error) => {
+      console.warn(`Daily Yahoo data unavailable for ${symbol}, using monthly only.`, error);
+      return null;
+    }),
+  ]);
+
+  const dataSource = dailyResult?.dataSource || monthlyResult.dataSource || "yahoo";
+  const base = buildYahooRecord(symbol, [monthlyResult, dailyResult], dataSource);
+  return enrichEtfRecord(base, symbol);
+};
+
+/** Lighter Yahoo fetch for stale refresh — merges recent prices into existing history. */
+const fetchYahooRecentSeries = async (symbol, signal, existingRecord) => {
+  const dailyResult = await fetchYahooPayload(symbol, { range: "6mo", interval: "1d" }, signal);
+  const pairs = extractPricePairs(dailyResult.chartResult);
+  const normalized = normalizeForSplits(pairs);
+  const recentPrices = normalized.map(({ date, close }) => ({ date, close }));
+
+  if (!recentPrices.length) {
+    throw new Error("No recent Yahoo prices available");
+  }
+
+  const mergedPrices = existingRecord?.prices?.length
+    ? mergePriceHistories(existingRecord, { prices: recentPrices })
+    : recentPrices;
+
+  const last = mergedPrices[mergedPrices.length - 1];
+  const base = {
+    symbol,
+    prices: mergedPrices,
+    currency: existingRecord?.currency || currencyForSymbol(symbol),
+    exchangeName: existingRecord?.exchangeName,
+    lastUpdated: last.date,
+    dataSource: dailyResult.dataSource || "yahoo",
     fromFallback: true,
   };
 
@@ -387,29 +419,47 @@ const recordFromMarketstack = (dashboardSymbol, prices) => {
  * Fetch all ETF prices: Marketstack batch first, Yahoo fallback for stale/missing.
  * Merges Marketstack recent EOD with bundled history for long chart ranges.
  */
-export const fetchAllEtfPrices = async (symbols, signal, { bundledData = {}, cachedData = {} } = {}) => {
+export const fetchAllEtfPrices = async (
+  symbols,
+  signal,
+  { bundledData = {}, cachedData = {}, loadBundled = false } = {}
+) => {
   const errors = {};
   let marketstackByDashboard = {};
 
-  try {
-    const batch = await fetchMarketstackBatch(signal);
-    Object.entries(batch.symbols || {}).forEach(([msSymbol, prices]) => {
+  const bundledPromise = loadBundled
+    ? fetchFallbackDataset(signal)
+        .then((p) => p?.data || {})
+        .catch(() => ({}))
+    : Promise.resolve(bundledData);
+
+  const [resolvedBundled, batchOutcome] = await Promise.all([
+    bundledPromise,
+    fetchMarketstackBatch(signal)
+      .then((batch) => ({ ok: true, batch }))
+      .catch((err) => ({ ok: false, err })),
+  ]);
+
+  const historySources = { ...resolvedBundled, ...bundledData };
+
+  if (batchOutcome.ok) {
+    Object.entries(batchOutcome.batch.symbols || {}).forEach(([msSymbol, prices]) => {
       const dashboardSymbol = toDashboardSymbol(msSymbol);
       const record = recordFromMarketstack(dashboardSymbol, prices);
       if (record) marketstackByDashboard[dashboardSymbol] = record;
     });
-  } catch (err) {
-    if (signal?.aborted) throw err;
-    errors.__marketstack = err.message || "Marketstack batch fetch failed";
-    console.warn("[marketstack]", err.message);
+  } else {
+    if (signal?.aborted) throw batchOutcome.err;
+    errors.__marketstack = batchOutcome.err?.message || "Marketstack batch fetch failed";
+    console.warn("[marketstack]", errors.__marketstack);
   }
 
   const results = {};
-  const needsYahoo = [];
+  const needsYahoo = new Set();
 
   symbols.forEach((symbol) => {
     const msRecord = marketstackByDashboard[symbol];
-    const historyBase = bundledData[symbol] || cachedData[symbol] || null;
+    const historyBase = historySources[symbol] || cachedData[symbol] || null;
 
     let candidate = null;
     if (msRecord) {
@@ -429,32 +479,45 @@ export const fetchAllEtfPrices = async (symbols, signal, { bundledData = {}, cac
     }
 
     if (!candidate) {
-      needsYahoo.push(symbol);
+      needsYahoo.add(symbol);
       return;
     }
 
     const enriched = enrichEtfRecord(candidate, symbol);
     if (!msRecord || enriched.isStale) {
-      needsYahoo.push(symbol);
+      needsYahoo.add(symbol);
       results[symbol] = enriched;
     } else {
       results[symbol] = enriched;
     }
   });
 
-  if (needsYahoo.length > 0) {
-    console.info("[fallback] Yahoo retry for:", needsYahoo.join(", "));
+  const yahooSymbols = [...needsYahoo];
+  if (yahooSymbols.length > 0) {
+    console.info("[fallback] Yahoo retry for:", yahooSymbols.join(", "));
     const yahooResults = await Promise.allSettled(
-      needsYahoo.map((symbol) => fetchYahooSeries(symbol, signal))
+      yahooSymbols.map(async (symbol) => {
+        const existing = results[symbol];
+        const hasHistory = (existing?.prices?.length ?? 0) > 60;
+        if (hasHistory) {
+          try {
+            return await fetchYahooRecentSeries(symbol, signal, existing);
+          } catch (recentErr) {
+            console.warn(`Recent Yahoo fetch failed for ${symbol}, trying full history.`, recentErr);
+          }
+        }
+        return fetchYahooSeries(symbol, signal);
+      })
     );
 
     yahooResults.forEach((result, index) => {
-      const symbol = needsYahoo[index];
+      const symbol = yahooSymbols[index];
       const existing = results[symbol];
+      const historyBase = historySources[symbol] || cachedData[symbol];
 
       if (result.status === "fulfilled") {
         const yahoo = result.value;
-        const mergedYahoo = historyBaseMerge(bundledData[symbol] || cachedData[symbol], yahoo);
+        const mergedYahoo = historyBaseMerge(historyBase, yahoo);
         const picked = pickBetterRecord(mergedYahoo, existing, symbol, {
           fetchError: existing?.isStale
             ? "Marketstack stale — refreshed from Yahoo fallback"

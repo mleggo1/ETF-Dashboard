@@ -80,7 +80,8 @@ export default function App() {
   }, [initialFallbackData, bootCache]);
 
   const applyDataset = useCallback((finalData, meta) => {
-    const enriched = enrichAllRecords(finalData);
+    const needsEnrich = Object.values(finalData).some((r) => r && r.priceAsAtDate == null);
+    const enriched = needsEnrich ? enrichAllRecords(finalData) : finalData;
     setEtfData(enriched);
     setErrors(meta.errors || {});
     setLastUpdated(meta.lastUpdated);
@@ -105,21 +106,10 @@ export default function App() {
       setErrors({});
 
       try {
-        let bundledData = {};
-        let bundledPayload = null;
-        if (allowFallback) {
-          try {
-            bundledPayload = await fetchFallbackDataset(signal);
-            bundledData = bundledPayload?.data || {};
-          } catch (cacheErr) {
-            console.warn("Failed to load bundled fallback dataset", cacheErr);
-          }
-        }
-
         const cachedSeries = bootCache?.data || {};
         const { data: liveData, errors: fetchErrors } = await fetchAllEtfPrices(SYMBOLS, signal, {
-          bundledData,
           cachedData: cachedSeries,
+          loadBundled: allowFallback,
         });
 
         if (signal?.aborted) return;
@@ -127,14 +117,29 @@ export default function App() {
         const nextErrors = { ...fetchErrors };
         const finalData = { ...liveData };
 
-        if (allowFallback && Object.keys(finalData).length < SYMBOLS.length && bundledData) {
-          SYMBOLS.forEach((symbol) => {
-            if (!finalData[symbol] && bundledData[symbol]) {
-              finalData[symbol] = pickBetterRecord(null, bundledData[symbol], symbol, {
-                fetchError: nextErrors[symbol] || "All live sources failed",
-              });
-            }
-          });
+        let bundledPayload = null;
+        if (allowFallback && Object.keys(finalData).length < SYMBOLS.length) {
+          try {
+            bundledPayload = await fetchFallbackDataset(signal);
+            const bundledData = bundledPayload?.data || {};
+            SYMBOLS.forEach((symbol) => {
+              if (!finalData[symbol] && bundledData[symbol]) {
+                finalData[symbol] = pickBetterRecord(null, bundledData[symbol], symbol, {
+                  fetchError: nextErrors[symbol] || "All live sources failed",
+                });
+              }
+            });
+          } catch (cacheErr) {
+            console.warn("Failed to load bundled fallback for gaps", cacheErr);
+          }
+        }
+
+        if (Object.keys(finalData).length === 0) {
+          try {
+            bundledPayload = bundledPayload || (await fetchFallbackDataset(signal));
+          } catch {
+            bundledPayload = null;
+          }
         }
 
         if (Object.keys(finalData).length === 0 && bundledPayload?.data) {
@@ -211,20 +216,12 @@ export default function App() {
   const handleRefreshData = useCallback(async () => {
     setLoading(true);
     setErrors({});
-    const currentData = { ...etfData };
+    const currentData = etfData;
 
     try {
-      let bundledData = {};
-      try {
-        const payload = await fetchFallbackDataset();
-        bundledData = payload?.data || {};
-      } catch (e) {
-        console.warn("Bundled fallback unavailable during refresh", e);
-      }
-
       const { data: liveData, errors: fetchErrors } = await fetchAllEtfPrices(SYMBOLS, undefined, {
-        bundledData,
         cachedData: currentData,
+        loadBundled: true,
       });
 
       const nextData = { ...currentData };

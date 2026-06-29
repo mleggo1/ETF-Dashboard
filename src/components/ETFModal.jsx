@@ -55,6 +55,17 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
               <h2 className="text-base sm:text-xl font-semibold text-white leading-snug line-clamp-2 sm:line-clamp-none">
                 {etf.symbol} – {etf.name}
               </h2>
+              {data?.isStale && data?.staleReason && (
+                <p className="mt-1.5 text-[11px] sm:text-xs text-amber-300/90 leading-snug">
+                  {data.staleReason}
+                </p>
+              )}
+              {data?.priceAsAtDate && !data?.isStale && (
+                <p className="mt-1 text-[10px] sm:text-xs text-slate-400">
+                  Last updated {data.priceAsAtDate}
+                  {data.dataSource ? ` · ${data.dataSource}` : ""}
+                </p>
+              )}
             </div>
             <button
               onClick={onClose}

@@ -51,7 +51,10 @@ export async function fetchMarketstackEodBatch({
 
     if (!response.ok || body?.error) {
       const message =
-        body?.error?.message || body?.error?.code || `Marketstack HTTP ${response.status}`;
+        body?.error?.message ||
+        body?.error?.code ||
+        (typeof body?.error === "string" ? body.error : null) ||
+        `Marketstack HTTP ${response.status}`;
       throw new Error(message);
     }
 

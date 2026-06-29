@@ -131,8 +131,11 @@ export const Dashboard = () => {
         <ETFSection title="Defensive" etfs={defensive} onChartClick={handleChartClick} />
       </div>
       <PerformanceTable />
-      <p className="text-xs text-slate-400 text-right">
-        Source: Marketstack (primary) · Yahoo Finance (fallback) · Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
+      <p className="text-[10px] sm:text-xs text-slate-400 text-center sm:text-right leading-relaxed px-1">
+        Source: Marketstack (primary) · Yahoo Finance (fallback)
+        <span className="block sm:inline sm:before:content-['_·_']">
+          Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
+        </span>
       </p>
       <p className="text-sm text-slate-500 text-center pt-4">
         © 2025 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo
