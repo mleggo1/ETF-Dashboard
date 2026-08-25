@@ -1,15 +1,15 @@
 [
   {"symbol": "IVV.AX", "name": "iShares S&P 500 ETF", "group": "growth"},
   {"symbol": "NDQ.AX", "name": "BetaShares NASDAQ 100 ETF", "group": "growth"},
-  {"symbol": "RBTZ.AX", "name": "BetaShares Global Robotics ETF", "group": "growth"},
+  {"symbol": "RBTZ.AX", "name": "BetaShares Global Robotics and Artificial Intelligence ETF", "group": "growth"},
   {"symbol": "CRYP.AX", "name": "BetaShares Crypto Innovators ETF", "group": "growth"},
-  {"symbol": "EBTC.XA", "name": "21Shares Bitcoin ETF", "group": "growth"},
+  {"symbol": "EBTC.XA", "name": "Global X 21Shares Bitcoin ETF", "group": "growth"},
   {"symbol": "EETH.XA", "name": "Global X 21Shares Ethereum ETF", "group": "growth"},
   {"symbol": "VAS.AX", "name": "Vanguard Australian Shares Index ETF", "group": "defensive"},
-  {"symbol": "VHY.AX", "name": "Vanguard High Yield ETF", "group": "defensive"},
-  {"symbol": "VAP.AX", "name": "Vanguard Australian Property Secs ETF", "group": "defensive"},
+  {"symbol": "VHY.AX", "name": "Vanguard Australian Shares High Yield ETF", "group": "defensive"},
+  {"symbol": "VAP.AX", "name": "Vanguard Australian Property Securities Index ETF", "group": "defensive"},
   {"symbol": "IOO.AX", "name": "iShares Global 100 ETF", "group": "defensive"},
-  {"symbol": "VAF.AX", "name": "Vanguard Aus Fixed Interest", "group": "defensive"},
+  {"symbol": "VAF.AX", "name": "Vanguard Australian Fixed Interest Index ETF", "group": "defensive"},
   {"symbol": "VGS.AX", "name": "Vanguard MSCI Index International Shares ETF", "group": "defensive"},
-  {"symbol": "STRF", "name": "MicroStrategy Capital II", "group": "defensive"}
+  {"symbol": "STRF", "name": "Strategy Inc 10% Strife Preferred Stock", "group": "defensive"}
 ]

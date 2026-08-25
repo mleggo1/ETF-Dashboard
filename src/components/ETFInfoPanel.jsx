@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { calculatePerformance } from "../utils/performanceCalculator";
+import { formatDataSourceLabel } from "../utils/marketData";
 
 const InfoTooltip = ({ term, explanation, children }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -110,13 +111,12 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
               </div>
             ))}
           </div>
-          {(metadata.holdingsAsOf || metadata.holdingsSource) && (
-            <p className="mt-2 text-[11px] text-slate-500">
-              {metadata.holdingsAsOf && <>As at {metadata.holdingsAsOf}</>}
-              {metadata.holdingsAsOf && metadata.holdingsSource && " · "}
-              {metadata.holdingsSource && <>Source: {metadata.holdingsSource}</>}
-            </p>
-          )}
+          <p className="mt-2 text-[11px] text-slate-500 leading-relaxed">
+            Holdings, MER and yield figures are manually curated snapshots, not a live feed, and may be
+            outdated. Verify against the issuer factsheet before relying on them.
+            {metadata.holdingsAsOf ? <> {metadata.holdingsAsOf}.</> : null}
+            {metadata.holdingsSource ? <> Source: {metadata.holdingsSource}.</> : null}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -173,7 +173,7 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
 
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 mb-2">
-            What This ETF Is Good For
+            What This Is Good For
           </h4>
           <p className="text-sm text-slate-300 leading-relaxed">{metadata.goodFor}</p>
         </div>
@@ -181,7 +181,8 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
         {data && data.lastUpdated && (
           <div className="pt-4 border-t border-slate-800/60">
             <p className="text-xs text-slate-500">
-              Data as at: {data.lastUpdated}
+              Price data as at {data.lastUpdated}
+              {data.dataSource ? ` · ${formatDataSourceLabel(data.dataSource)}` : ""}
             </p>
           </div>
         )}

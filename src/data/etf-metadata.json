@@ -313,24 +313,24 @@
     "holdingsSource": "ETF issuer factsheet / website (not a live feed)"
   },
   "STRF": {
-    "description": "MicroStrategy Capital II provides strategic investment exposure with a focus on technology and digital assets through MicroStrategy's corporate strategy.",
-    "category": "Multi-Asset",
-    "indexTracked": "Custom Strategy",
-    "strategy": "Active management",
+    "description": "NASDAQ-listed 10.00% Series A Perpetual Strife Preferred Stock issued by Strategy Inc (formerly MicroStrategy). Pays a fixed 10% annual cumulative dividend on a $100 stated amount, with no conversion into common stock. This is preferred equity, not an ETF.",
+    "category": "Preferred stock (not an ETF)",
+    "indexTracked": "N/A — issuer preferred stock",
+    "strategy": "Fixed 10% cumulative preferred dividend; no conversion feature",
     "holdings": [
-      {"name": "Diversified Holdings", "weight": "Various"}
+      {"name": "Strategy Inc (issuer obligation)", "weight": "N/A"}
     ],
-    "mer": "—",
-    "dividendYield": "—",
-    "distributionFrequency": "—",
+    "mer": "N/A",
+    "dividendYield": "10.00% coupon on $100 par (market yield varies with price)",
+    "distributionFrequency": "Quarterly",
     "performance": {
-      "1Y": "20%",
+      "1Y": "—",
       "3Y": "—",
       "5Y": "—"
     },
-    "goodFor": "Investors seeking exposure to MicroStrategy's strategic approach to digital assets and technology investments.",
-    "holdingsAsOf": "Manually curated; last reviewed 24/02/2026",
-    "holdingsSource": "ETF issuer filings / company reports (not a live feed)"
+    "goodFor": "Educational comparison only. This is a corporate preferred security linked to Strategy Inc, not a diversified ETF.",
+    "holdingsAsOf": "Manually curated; last reviewed 25/08/2026",
+    "holdingsSource": "Issuer prospectus / company disclosures (not a live feed)"
   }
 }
 

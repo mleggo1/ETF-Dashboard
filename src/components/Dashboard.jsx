@@ -5,6 +5,7 @@ import { PerformanceTable } from "./PerformanceTable";
 import { ETFModal } from "./ETFModal";
 import { ETFInfoModal } from "./ETFInfoModal";
 import { AppContext } from "../App";
+import { describePriceSources, formatDataSourceLabel } from "../utils/marketData";
 
 export const Dashboard = () => {
   const {
@@ -15,7 +16,9 @@ export const Dashboard = () => {
     lastRefreshTimestamp,
     dataAsAtDate,
     staleWarnings,
+    etfData,
   } = React.useContext(AppContext);
+  const priceSourceLabel = describePriceSources(etfData);
   const [selectedETF, setSelectedETF] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -107,7 +110,7 @@ export const Dashboard = () => {
               <li key={symbol}>
                 <span className="font-semibold">{symbol}</span>: {info.message}
                 {info.dataSource ? (
-                  <span className="text-amber-200/70"> · Source: {info.dataSource}</span>
+                  <span className="text-amber-200/70"> · Source: {formatDataSourceLabel(info.dataSource)}</span>
                 ) : null}
               </li>
             ))}
@@ -131,15 +134,32 @@ export const Dashboard = () => {
         <ETFSection title="Defensive" etfs={defensive} onChartClick={handleChartClick} />
       </div>
       <PerformanceTable />
-      <p className="text-[10px] sm:text-xs text-slate-400 text-center sm:text-right leading-relaxed px-1">
-        Source: Marketstack (primary) · Yahoo Finance (fallback)
-        <span className="block sm:inline sm:before:content-['_·_']">
-          Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
-        </span>
-      </p>
-      <p className="text-sm text-slate-500 text-center pt-4">
-        © 2025 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo
-      </p>
+      <footer className="space-y-4 pt-2">
+        <p className="text-[10px] sm:text-xs text-slate-400 text-center sm:text-right leading-relaxed px-1">
+          Source: {priceSourceLabel}
+          <span className="block sm:inline">
+            {" · "}Prices as at {dataAsAtDate || "n/a"} · Last refreshed {lastRefreshTimestamp || "n/a"}
+          </span>
+        </p>
+        <div
+          className="rounded-lg border border-slate-700/70 bg-slate-900/70 px-3 sm:px-4 py-3 text-[11px] sm:text-xs text-slate-400 leading-relaxed"
+          role="note"
+        >
+          <p className="font-semibold uppercase tracking-[0.12em] text-slate-300 mb-1.5">
+            Educational Data Notice
+          </p>
+          <p>
+            The interactive examples on this page use historical ETF price data sourced through Yahoo
+            Finance and are provided solely for education, modelling and case studies. Data may be
+            delayed, incomplete or inaccurate and is not guaranteed. Past performance is not a
+            reliable indicator of future results. This is not financial product advice or a
+            recommendation; verify all data independently before making financial decisions.
+          </p>
+        </div>
+        <p className="text-sm text-slate-500 text-center">
+          © 2026 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo
+        </p>
+      </footer>
       <ETFModal etf={selectedETF} isOpen={isModalOpen} onClose={handleCloseModal} />
       <ETFInfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
     </div>

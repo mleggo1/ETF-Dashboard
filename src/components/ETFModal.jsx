@@ -3,6 +3,7 @@ import { AppContext } from "../App";
 import { EnlargedChart } from "./EnlargedChart";
 import { ETFInfoPanel } from "./ETFInfoPanel";
 import etfMetadata from "../data/etf-metadata.json";
+import { formatDataSourceLabel } from "../utils/marketData";
 
 export const ETFModal = ({ etf, isOpen, onClose }) => {
   const { etfData } = React.useContext(AppContext);
@@ -63,7 +64,7 @@ export const ETFModal = ({ etf, isOpen, onClose }) => {
               {data?.priceAsAtDate && !data?.isStale && (
                 <p className="mt-1 text-[10px] sm:text-xs text-slate-400">
                   Last updated {data.priceAsAtDate}
-                  {data.dataSource ? ` · ${data.dataSource}` : ""}
+                  {data.dataSource ? ` · ${formatDataSourceLabel(data.dataSource)}` : ""}
                 </p>
               )}
             </div>

@@ -8,6 +8,28 @@ import {
 import { toDashboardSymbol } from "./marketstackSymbols";
 
 export const DATA_URL = "/data/etf-prices.json";
+
+const SOURCE_LABELS = {
+  marketstack: "Marketstack",
+  "yahoo-api": "Yahoo Finance",
+  "yahoo-direct": "Yahoo Finance",
+  "yahoo-allorigins": "Yahoo Finance",
+  "yahoo-corsproxy": "Yahoo Finance",
+  yahoo: "Yahoo Finance",
+  "bundled-fallback": "bundled snapshot",
+};
+
+export const formatDataSourceLabel = (dataSource) =>
+  SOURCE_LABELS[dataSource] || dataSource || "Yahoo Finance";
+
+export const describePriceSources = (etfData) => {
+  const labels = new Set();
+  Object.values(etfData || {}).forEach((record) => {
+    if (record?.dataSource) labels.add(formatDataSourceLabel(record.dataSource));
+  });
+  if (labels.size === 0) return "Yahoo Finance";
+  return [...labels].join(" · ");
+};
 const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 const SPLIT_THRESHOLD = 7;
 export const CACHE_KEY = "etf-dashboard-cache";

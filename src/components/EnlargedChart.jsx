@@ -7,42 +7,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { filterPricesByTimeframe, parseISODate, returnCoverageLabel } from "../utils/dates";
 
-// Sort by date first so lastDate is correct - matches table and MiniLineChart
-const filterByTimeframe = (prices, timeframe) => {
-  if (!prices) return [];
-  if (timeframe === "ALL") return prices;
-
-  const sorted = [...prices].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-  const lastDate = new Date(sorted[sorted.length - 1].date);
-  const start = new Date(lastDate);
-
-  switch (timeframe) {
-    case "YTD":
-      start.setMonth(0, 1);
-      start.setHours(0, 0, 0, 0);
-      break;
-    case "1Y":
-      start.setFullYear(start.getFullYear() - 1);
-      break;
-    case "2Y":
-      start.setFullYear(start.getFullYear() - 2);
-      break;
-    case "5Y":
-      start.setFullYear(start.getFullYear() - 5);
-      break;
-    case "10Y":
-      start.setFullYear(start.getFullYear() - 10);
-      break;
-    default:
-      break;
-  }
-
-  return sorted.filter((p) => new Date(p.date) >= start);
-};
+const filterByTimeframe = (prices, timeframe) => filterPricesByTimeframe(prices, timeframe);
 
 const formatDateLabel = (dateString, timeframe) => {
-  const date = new Date(dateString);
+  const date = parseISODate(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
 
   switch (timeframe) {
@@ -159,6 +129,7 @@ export const EnlargedChart = ({ timeframe, data, group, layout }) => {
     first && last
       ? (((last.close - first.close) / first.close) * 100).toFixed(2)
       : null;
+  const coverage = returnCoverageLabel(filtered, timeframe);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -243,7 +214,7 @@ export const EnlargedChart = ({ timeframe, data, group, layout }) => {
     >
       <div className={`flex items-center justify-between ${isModal ? "mb-2 lg:mb-4" : "mb-4"}`}>
         <div className={`text-slate-300 ${isModal ? "text-xs lg:text-sm" : "text-sm"}`}>
-          <span className="text-slate-400">Period return: </span>
+          <span className="text-slate-400">Period return{coverage ? ` (${coverage})` : ""}: </span>
           <span className={cumulativeReturn >= 0 ? chartColors.percentagePositive : "text-rose-400"}>
             {cumulativeReturn !== null ? `${cumulativeReturn >= 0 ? "+" : ""}${cumulativeReturn}%` : "—"}
           </span>

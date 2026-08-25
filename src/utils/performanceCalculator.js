@@ -1,35 +1,6 @@
-// Filter prices by timeframe (same logic as charts)
-const filterByTimeframe = (prices, timeframe) => {
-  if (!prices || prices.length === 0) return [];
-  if (timeframe === "ALL") return prices;
+import { filterPricesByTimeframe, parseISODate } from "./dates";
 
-  const sorted = [...prices].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-  const lastDate = new Date(sorted[sorted.length - 1].date);
-  const start = new Date(lastDate);
-
-  switch (timeframe) {
-    case "YTD":
-      start.setMonth(0, 1);
-      start.setHours(0, 0, 0, 0);
-      break;
-    case "1Y":
-      start.setFullYear(start.getFullYear() - 1);
-      break;
-    case "2Y":
-      start.setFullYear(start.getFullYear() - 2);
-      break;
-    case "5Y":
-      start.setFullYear(start.getFullYear() - 5);
-      break;
-    case "10Y":
-      start.setFullYear(start.getFullYear() - 10);
-      break;
-    default:
-      break;
-  }
-
-  return sorted.filter((p) => new Date(p.date) >= start);
-};
+const filterByTimeframe = (prices, timeframe) => filterPricesByTimeframe(prices, timeframe);
 
 // 1Y = simple (holding-period) return; 3Y/5Y/10Y = annualised (CAGR) from start to end date.
 // Calculate return for a timeframe (same as charts - simple percentage change)
@@ -55,8 +26,7 @@ export const calculateAnnualizedReturn = (prices, years) => {
   if (!prices || prices.length < 2) return null;
   
   const sorted = [...prices].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-  const lastDate = new Date(sorted[sorted.length - 1].date);
-  const startDate = new Date(lastDate);
+  const startDate = parseISODate(sorted[sorted.length - 1].date);
   startDate.setFullYear(startDate.getFullYear() - years);
   const cutoffDate = new Date(startDate);
   cutoffDate.setDate(cutoffDate.getDate() + MAX_START_DAYS_AFTER_WINDOW);
@@ -65,7 +35,7 @@ export const calculateAnnualizedReturn = (prices, years) => {
   let startPrice = null;
   let startPriceDate = null;
   for (let i = 0; i < sorted.length; i++) {
-    const priceDate = new Date(sorted[i].date);
+    const priceDate = parseISODate(sorted[i].date);
     if (priceDate >= startDate) {
       startPrice = sorted[i].close;
       startPriceDate = priceDate;

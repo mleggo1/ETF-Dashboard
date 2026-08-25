@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AppContext } from "../App";
 import { MiniLineChart } from "./MiniLineChart";
+import { formatDataSourceLabel } from "../utils/marketData";
 
 const LOCAL_OPTIONS = ["SYNC", "YTD", "1Y", "2Y", "5Y", "10Y", "ALL"];
 
@@ -98,7 +99,7 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
           )}
           {data?.dataSource && (
             <span className="block normal-case tracking-normal text-slate-500/80 mt-0.5">
-              via {data.dataSource}
+              via {formatDataSourceLabel(data.dataSource)}
             </span>
           )}
         </div>

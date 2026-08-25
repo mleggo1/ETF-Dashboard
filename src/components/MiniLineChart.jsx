@@ -7,39 +7,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { filterPricesByTimeframe, parseISODate, returnCoverageLabel } from "../utils/dates";
 
-// helper to filter dataset by timeframe (sort by date first so lastDate is correct - matches table logic)
-const filterByTimeframe = (prices, timeframe) => {
-  if (!prices) return [];
-  if (timeframe === "ALL") return prices;
-
-  const sorted = [...prices].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-  const lastDate = new Date(sorted[sorted.length - 1].date);
-  const start = new Date(lastDate);
-
-  switch (timeframe) {
-    case "YTD":
-      start.setMonth(0, 1);
-      start.setHours(0, 0, 0, 0);
-      break;
-    case "1Y":
-      start.setFullYear(start.getFullYear() - 1);
-      break;
-    case "2Y":
-      start.setFullYear(start.getFullYear() - 2);
-      break;
-    case "5Y":
-      start.setFullYear(start.getFullYear() - 5);
-      break;
-    case "10Y":
-      start.setFullYear(start.getFullYear() - 10);
-      break;
-    default:
-      break;
-  }
-
-  return sorted.filter((p) => new Date(p.date) >= start);
-};
+const filterByTimeframe = (prices, timeframe) => filterPricesByTimeframe(prices, timeframe);
 
 const formatCurrency = (value, currency) => {
   if (value === undefined || value === null) return "";
@@ -68,13 +38,13 @@ const formatCurrencyNoCents = (value, currency) => {
 };
 
 const formatDateLabel = (dateString, timeframe) => {
-  const date = new Date(dateString);
+  const date = parseISODate(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
 
   switch (timeframe) {
     case "YTD":
     case "1Y":
-      return date.toLocaleDateString("en-US", { month: "short" });
+      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     case "2Y":
     case "5Y":
       return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
@@ -139,11 +109,15 @@ export const MiniLineChart = ({ timeframe, data, group }) => {
     first && last
       ? (((last.close - first.close) / first.close) * 100).toFixed(2)
       : null;
+  const coverage = returnCoverageLabel(filtered, timeframe);
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-1 flex items-center justify-between text-xs text-slate-300 flex-shrink-0">
-        <span>{timeframe}</span>
+      <div className="mb-1 flex items-center justify-between text-xs text-slate-300 flex-shrink-0 gap-2">
+        <span>
+          {timeframe}
+          {coverage ? <span className="ml-1 text-[10px] normal-case tracking-normal text-slate-500">{coverage}</span> : null}
+        </span>
         <span className={pct >= 0 ? chartColors.percentagePositive : "text-red-500"}>
           {pct ? `${pct}%` : ""}
         </span>

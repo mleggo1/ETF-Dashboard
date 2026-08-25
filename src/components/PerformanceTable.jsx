@@ -3,7 +3,7 @@ import { AppContext } from "../App";
 import { calculatePerformance } from "../utils/performanceCalculator";
 
 const PERFORMANCE_CACHE_KEY = "etf-performance-cache";
-const PERFORMANCE_CACHE_VERSION = 3; // bump when calculation logic changes (e.g. 5Y/10Y require sufficient history)
+const PERFORMANCE_CACHE_VERSION = 4; // bump when calculation logic changes (calendar-date parsing)
 const CUSTOM_ORDER_KEY = "etf-performance-custom-order";
 
 const loadCustomOrder = () => {
@@ -217,10 +217,9 @@ export const PerformanceTable = () => {
       if (aNull && bNull) return 0;
       if (aNull) return 1;
       if (bNull) return -1;
-      if (key === "etf") {
-        return va < vb ? -dir : va > vb ? dir : 0;
-      }
-      return va < vb ? dir : va > vb ? -dir : 0;
+      if (va < vb) return -dir;
+      if (va > vb) return dir;
+      return 0;
     });
   }, [displayPerformance, sortBy, sortDir, customOrder]);
   
@@ -338,7 +337,9 @@ export const PerformanceTable = () => {
                   if (isNaN(value)) return "—";
                   // 1Y shows 1 decimal place to match charts, others show whole numbers
                   const decimals = isOneYear ? 1 : 0;
-                  return `${value >= 0 ? "" : ""}${value.toFixed(decimals)}%`;
+                  const rounded = Number(value.toFixed(decimals));
+                  if (Object.is(rounded, -0) || rounded === 0) return "0%";
+                  return `${rounded.toFixed(decimals)}%`;
                 };
                 
                 const getValueClass = (value) => {
@@ -410,8 +411,9 @@ export const PerformanceTable = () => {
           </tbody>
         </table>
       </div>
-      <p className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-[9px] sm:text-[10px] lg:text-xs text-slate-400/80">
-        Note: Performance calculated from available historical data. Some ETFs may not have full 5/10-year history.
+      <p className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-[9px] sm:text-[10px] lg:text-xs text-slate-400/80 leading-relaxed">
+        Returns use adjusted close prices (distributions reflected in the series). 1 YR is a holding-period
+        return; 3 / 5 / 10 YRS are annualised (CAGR). A dash means there is not enough history for that window.
       </p>
     </div>
   );
