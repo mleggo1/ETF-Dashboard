@@ -157,7 +157,7 @@ export const Dashboard = () => {
           </p>
         </div>
         <p className="text-sm text-slate-500 text-center">
-          © 2026 Investment Matchmaker · Educational only — not financial advice · Built by Michael Leggo
+          © 2026 Investment Educator · Educational only — not financial advice · Built by Michael Leggo
         </p>
       </footer>
       <ETFModal etf={selectedETF} isOpen={isModalOpen} onClose={handleCloseModal} />
