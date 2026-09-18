@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AppContext } from "../App";
 import { EnlargedChart } from "./EnlargedChart";
 import { ETFInfoPanel } from "./ETFInfoPanel";
-import etfMetadata from "../data/etf-metadata.json";
+import etfMetadata from "../data/etfMetadata.js";
 import { formatDataSourceLabel } from "../utils/marketData";
 
 export const ETFModal = ({ etf, isOpen, onClose }) => {

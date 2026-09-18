@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from "react";
-import { calculatePerformance } from "../utils/performanceCalculator";
+import React, { useState } from "react";
 import { formatDataSourceLabel } from "../utils/marketData";
 
 const InfoTooltip = ({ term, explanation, children }) => {
@@ -26,14 +25,7 @@ const InfoTooltip = ({ term, explanation, children }) => {
   );
 };
 
-const PERIOD_LABELS = { y1: "1 YR", y3: "3 YRS", y5: "5 YRS", y10: "10 YRS" };
-
 export const ETFInfoPanel = ({ etf, metadata, data }) => {
-  const livePerformance = useMemo(() => {
-    if (!data?.prices?.length || !etf?.symbol || !etf?.name) return null;
-    return calculatePerformance(data, etf.symbol, etf.name);
-  }, [data, etf?.symbol, etf?.name]);
-
   if (!metadata) {
     return (
       <div className="p-6">
@@ -44,23 +36,12 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
     );
   }
 
-  const performanceEntries = livePerformance
-    ? Object.entries(PERIOD_LABELS).map(([key, label]) => {
-        const v = livePerformance[key];
-        const value =
-          v == null || (typeof v === "number" && isNaN(v))
-            ? "—"
-            : typeof v === "number"
-              ? `${v >= 0 ? "" : ""}${v.toFixed(key === "y1" ? 1 : 0)}%`
-              : String(v);
-        return [label, value];
-      })
-    : metadata.performance
-      ? Object.entries(metadata.performance).map(([period, returnValue]) => [
-          period.replace(/^1Y$/i, "1 YR").replace(/^3Y$/i, "3 YRS").replace(/^5Y$/i, "5 YRS").replace(/^10Y$/i, "10 YRS"),
-          returnValue,
-        ])
-      : [];
+  const performanceEntries = metadata.performance
+    ? Object.entries(metadata.performance).map(([period, returnValue]) => [
+        period.replace(/^1Y$/i, "1 YR").replace(/^3Y$/i, "3 YRS").replace(/^5Y$/i, "5 YRS").replace(/^10Y$/i, "10 YRS"),
+        returnValue == null || returnValue === "" ? "—" : returnValue,
+      ])
+    : [];
 
   return (
     <div className="p-6 space-y-6">
@@ -154,9 +135,6 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 mb-2">
             Performance Summary
-            {livePerformance && (
-              <span className="ml-1.5 text-[10px] normal-case font-normal text-slate-500">(from current data)</span>
-            )}
           </h4>
           <div className="grid grid-cols-2 gap-3">
             {performanceEntries.map(([period, returnValue]) => (

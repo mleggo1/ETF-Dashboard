@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import { AppContext } from "../App";
-import { calculatePerformance } from "../utils/performanceCalculator";
+import etfMetadata, { canonicalDataset } from "../data/etfMetadata.js";
 
 const PERFORMANCE_CACHE_KEY = "etf-performance-cache";
-const PERFORMANCE_CACHE_VERSION = 4; // bump when calculation logic changes (calendar-date parsing)
+const PERFORMANCE_CACHE_VERSION = 6; // canonical issuer snapshot + dataset version
 const CUSTOM_ORDER_KEY = "etf-performance-custom-order";
 
 const loadCustomOrder = () => {
@@ -35,7 +35,13 @@ const loadCachedPerformance = () => {
     const cached = localStorage.getItem(PERFORMANCE_CACHE_KEY);
     if (!cached) return null;
     const parsed = JSON.parse(cached);
-    if (parsed && parsed.data && Array.isArray(parsed.data) && parsed.version === PERFORMANCE_CACHE_VERSION) {
+    if (
+      parsed &&
+      parsed.data &&
+      Array.isArray(parsed.data) &&
+      parsed.version === PERFORMANCE_CACHE_VERSION &&
+      parsed.datasetVersion === canonicalDataset.datasetVersion
+    ) {
       return parsed;
     }
   } catch (error) {
@@ -48,6 +54,7 @@ const saveCachedPerformance = (performanceData, timestamp) => {
   try {
     const cache = {
       version: PERFORMANCE_CACHE_VERSION,
+      datasetVersion: canonicalDataset.datasetVersion,
       data: performanceData,
       timestamp: timestamp,
       cachedAt: new Date().toISOString(),
@@ -72,7 +79,7 @@ const getSortValue = (row, key) => {
 };
 
 export const PerformanceTable = () => {
-  const { etfData, ETF_CONFIG, lastRefreshTimestamp } = React.useContext(AppContext);
+  const { ETF_CONFIG, lastRefreshTimestamp } = React.useContext(AppContext);
   const [cachedPerformance, setCachedPerformance] = React.useState(loadCachedPerformance());
   const [sortBy, setSortBy] = React.useState("y1");
   const [sortDir, setSortDir] = React.useState("desc");
@@ -151,15 +158,19 @@ export const PerformanceTable = () => {
     saveCustomOrder(currentOrder);
   };
   
-  // Calculate performance from current data
   const currentPerformance = useMemo(() => {
-    if (!etfData || Object.keys(etfData).length === 0) return null;
-    
     return ETF_CONFIG.map(({ symbol, name }) => {
-      const data = etfData[symbol];
-      return calculatePerformance(data, symbol, name);
+      const raw = etfMetadata[symbol]?.performanceRaw || {};
+      return {
+        etf: `${symbol} – ${name}`,
+        symbol,
+        y1: raw.y1 ?? null,
+        y3: raw.y3 ?? null,
+        y5: raw.y5 ?? null,
+        y10: raw.y10 ?? null,
+      };
     });
-  }, [etfData, ETF_CONFIG]);
+  }, [ETF_CONFIG]);
   
   // Scroll to ETF card when row is clicked
   const handleRowClick = (symbol) => {
@@ -327,19 +338,13 @@ export const PerformanceTable = () => {
           <tbody>
             {sortedPerformance.length > 0 ? (
               sortedPerformance.map((row, index) => {
-                const formatValue = (value, isOneYear = false) => {
-                  // Handle both new format (number) and old cached format (string)
+                const formatValue = (value) => {
                   if (value === null || value === undefined) return "—";
                   if (typeof value === "string") {
-                    // Old cached format - already formatted, just return it
                     return value;
                   }
                   if (isNaN(value)) return "—";
-                  // 1Y shows 1 decimal place to match charts, others show whole numbers
-                  const decimals = isOneYear ? 1 : 0;
-                  const rounded = Number(value.toFixed(decimals));
-                  if (Object.is(rounded, -0) || rounded === 0) return "0%";
-                  return `${rounded.toFixed(decimals)}%`;
+                  return `${Number(value).toFixed(2)}%`;
                 };
                 
                 const getValueClass = (value) => {
@@ -387,7 +392,7 @@ export const PerformanceTable = () => {
                       </div>
                     </td>
                     <td className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-sm sm:text-base lg:text-lg font-bold ${getValueClass(row.y1)}`}>
-                      {formatValue(row.y1, true)}
+                      {formatValue(row.y1)}
                     </td>
                     <td className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-sm sm:text-base lg:text-lg font-bold ${getValueClass(row.y3)}`}>
                       {formatValue(row.y3)}

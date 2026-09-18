@@ -1,6 +1,6 @@
 import React, { useEffect, useState, createContext, useCallback, useMemo } from "react";
 import { Dashboard } from "./components/Dashboard";
-import etfConfig from "./data/etfs.json";
+import etfConfig from "./data/etfConfig.js";
 import {
   buildStaleWarnings,
   DATA_URL,

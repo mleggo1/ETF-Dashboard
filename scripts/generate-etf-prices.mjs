@@ -7,12 +7,15 @@ const __dirname = path.dirname(__filename);
 
 const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 
-const etfsPath = path.join(__dirname, "..", "src", "data", "etfs.json");
+const etfsPath = path.join(__dirname, "..", "src", "data", "canonical", "etf-canonical.json");
 const outputPath = path.join(__dirname, "..", "public", "data", "etf-prices.json");
 
 const loadEtfConfig = () => {
   const raw = fs.readFileSync(etfsPath, "utf8");
-  return JSON.parse(raw);
+  const dataset = JSON.parse(raw);
+  return dataset.instruments
+    .filter((item) => (item.apps || []).includes("dashboard"))
+    .map((item) => ({ symbol: item.dashboardSymbol, name: item.fundName }));
 };
 
 const fetchYahooSeries = async (symbol) => {

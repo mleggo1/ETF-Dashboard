@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ROOT = path.resolve(__dirname, "..");
-const ETF_CONFIG_PATH = path.join(ROOT, "src", "data", "etfs.json");
+const ETF_CONFIG_PATH = path.join(ROOT, "src", "data", "canonical", "etf-canonical.json");
 const OUTPUT_DIR = path.join(ROOT, "public", "data");
 const OUTPUT_FILE = path.join(OUTPUT_DIR, "etf-prices.json");
 const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
@@ -129,7 +129,9 @@ async function fetchYahooSeries(symbol) {
 
 async function main() {
   const configRaw = await readFile(ETF_CONFIG_PATH, "utf-8");
-  const etfConfig = JSON.parse(configRaw);
+  const etfConfig = JSON.parse(configRaw)
+    .instruments.filter((item) => (item.apps || []).includes("dashboard"))
+    .map((item) => ({ symbol: item.dashboardSymbol }));
   console.log(`Fetching data for ${etfConfig.length} ETFs…`);
 
   const results = await Promise.allSettled(
