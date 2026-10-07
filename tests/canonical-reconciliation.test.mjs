@@ -10,6 +10,7 @@ import {
   educatorViewOfInstrument,
   FRESHNESS_RULES,
   formatPercentPoints,
+  getDashboardEtfConfig,
   getEducatorEtfs,
   getInstrumentByExchangeTicker,
   listSharedInstruments,
@@ -83,7 +84,7 @@ test("hedged and unhedged funds are not combined", () => {
 
 test("shared instruments reconcile between educator and dashboard views", () => {
   const shared = listSharedInstruments(dataset);
-  assert.equal(shared.length, 8);
+  assert.equal(shared.length, 9);
   const result = reconcileSharedInstruments(dataset);
   assert.equal(result.ok, true, JSON.stringify(result.mismatches, null, 2));
   for (const instrument of shared) {
@@ -210,7 +211,7 @@ test("conflicting dataset versions fail validation", () => {
 
 test("educator adapter uses the same dataset version and does not invent CRYP 5y", () => {
   const educatorEtfs = getEducatorEtfs(dataset);
-  assert.equal(educatorEtfs.length, 8);
+  assert.equal(educatorEtfs.length, 9);
   const cryp = educatorEtfs.find((item) => item.ticker === "CRYP");
   assert.equal(cryp.return_5y, null);
   assert.equal(cryp.datasetVersion, dataset.datasetVersion);
@@ -300,6 +301,7 @@ test("shared formatted values match the independently verified snapshot", () => 
     "XASX:VAP": { mer: "0.23%", ret: "2.64%", yld: "2.42%" },
     "XASX:IOO": { mer: "0.40%", ret: "15.86%", yld: "1.21%" },
     "XASX:VAF": { mer: "0.10%", ret: "-0.22%", yld: "—" },
+    "XASX:VBND": { mer: "0.20%", ret: "-1.11%", yld: "8.60%" },
   };
   for (const [id, values] of Object.entries(expected)) {
     const instrument = dataset.instruments.find((item) => item.id === id);
@@ -332,6 +334,37 @@ test("educator adapters never coerce missing five-year return or yield to zero",
       assert.equal(etf.yield, null);
     }
   }
+});
+
+test("IOO is growth equity, EETH stays in history only, and the charts stay level", () => {
+  const ioo = getInstrumentByExchangeTicker(dataset, "XASX", "IOO");
+  const eeth = getInstrumentByExchangeTicker(dataset, "CHIA", "EETH");
+  const vbnd = getInstrumentByExchangeTicker(dataset, "XASX", "VBND");
+  assert.equal(ioo.group, "growth");
+  assert.equal(ioo.educatorRiskBand, "growth");
+  assert.equal(ioo.includeInCharts, true);
+  assert.equal(eeth.group, "growth");
+  assert.equal(eeth.includeInCharts, false);
+  assert.equal(eeth.apps.includes("dashboard"), true);
+  assert.equal(vbnd.group, "defensive");
+  assert.equal(vbnd.hedged, true);
+  assert.equal(vbnd.includeInCharts, true);
+  assert.equal(vbnd.return5y.percentPoints, -1.11);
+  assert.equal(vbnd.return10y.percentPoints, null);
+  assert.equal(vbnd.return10y.status, "insufficient_history");
+  assert.equal(vbnd.isin, "AU00000VBND9");
+
+  const config = getDashboardEtfConfig(dataset);
+  assert.ok(config.some((item) => item.symbol === "EETH.XA"));
+  assert.ok(config.some((item) => item.symbol === "VBND.AX"));
+  const charts = config.filter((item) => item.includeInCharts);
+  const growth = charts.filter((item) => item.group === "growth").map((item) => item.symbol);
+  const defensive = charts.filter((item) => item.group === "defensive").map((item) => item.symbol);
+  assert.deepEqual(growth, ["IVV.AX", "NDQ.AX", "RBTZ.AX", "CRYP.AX", "IOO.AX", "EBTC.XA"]);
+  assert.deepEqual(defensive, ["VHY.AX", "VAP.AX", "VAF.AX", "VBND.AX", "VAS.AX", "VGS.AX"]);
+  assert.equal(growth.length, defensive.length);
+  assert.equal(charts.some((item) => item.symbol === "EETH.XA"), false);
+  assert.equal(charts.some((item) => item.symbol === "STRF"), false);
 });
 
 test("different effective dates are retained per metric and compared by both apps", () => {

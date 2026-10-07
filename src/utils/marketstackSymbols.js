@@ -14,6 +14,7 @@ export const DASHBOARD_TO_MARKETSTACK = {
   "VAP.AX": "VAP.XASX",
   "IOO.AX": "IOO.XASX",
   "VAF.AX": "VAF.XASX",
+  "VBND.AX": "VBND.XASX",
   "VGS.AX": "VGS.XASX",
   STRF: "STRF.XNAS",
 };

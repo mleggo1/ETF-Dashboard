@@ -115,10 +115,10 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 mb-1">
               <InfoTooltip
-                term="Dividend Yield"
-                explanation="The annual dividend payment divided by the current share price, expressed as a percentage. Shows how much income you can expect from dividends."
+                term="Distribution yield"
+                explanation="The issuer’s trailing 12-month distribution return. For Vanguard funds this is the published 1-year distribution return, which can differ from running yield or yield to maturity. It is not a forecast of future income."
               >
-                Dividend Yield
+                Distribution yield
               </InfoTooltip>
             </h4>
             <p className="text-sm text-slate-200">{metadata.dividendYield}</p>

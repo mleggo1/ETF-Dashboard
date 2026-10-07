@@ -2,66 +2,85 @@
   {
     "symbol": "IVV.AX",
     "name": "iShares S&P 500 ETF",
-    "group": "growth"
+    "group": "growth",
+    "includeInCharts": true
   },
   {
     "symbol": "NDQ.AX",
     "name": "Betashares Nasdaq 100 ETF",
-    "group": "growth"
+    "group": "growth",
+    "includeInCharts": true
   },
   {
     "symbol": "RBTZ.AX",
     "name": "Betashares Global Robotics and Artificial Intelligence ETF",
-    "group": "growth"
+    "group": "growth",
+    "includeInCharts": true
   },
   {
     "symbol": "CRYP.AX",
     "name": "Betashares Crypto Innovators ETF",
-    "group": "growth"
+    "group": "growth",
+    "includeInCharts": true
   },
   {
     "symbol": "VHY.AX",
     "name": "Vanguard Australian Shares High Yield ETF",
-    "group": "defensive"
+    "group": "defensive",
+    "includeInCharts": true
   },
   {
     "symbol": "VAP.AX",
     "name": "Vanguard Australian Property Securities Index ETF",
-    "group": "defensive"
+    "group": "defensive",
+    "includeInCharts": true
   },
   {
     "symbol": "IOO.AX",
     "name": "iShares Global 100 ETF",
-    "group": "defensive"
+    "group": "growth",
+    "includeInCharts": true
   },
   {
     "symbol": "VAF.AX",
     "name": "Vanguard Australian Fixed Interest Index ETF",
-    "group": "defensive"
+    "group": "defensive",
+    "includeInCharts": true
+  },
+  {
+    "symbol": "VBND.AX",
+    "name": "Vanguard Global Aggregate Bond Index (Hedged) ETF",
+    "group": "defensive",
+    "includeInCharts": true
   },
   {
     "symbol": "VAS.AX",
     "name": "Vanguard Australian Shares Index ETF",
-    "group": "defensive"
+    "group": "defensive",
+    "includeInCharts": true
   },
   {
     "symbol": "VGS.AX",
     "name": "Vanguard MSCI International Shares Index ETF",
-    "group": "defensive"
+    "group": "defensive",
+    "includeInCharts": true
   },
   {
     "symbol": "EBTC.XA",
     "name": "Global X 21Shares Bitcoin ETF",
-    "group": "growth"
+    "group": "growth",
+    "includeInCharts": true
   },
   {
     "symbol": "EETH.XA",
     "name": "Global X 21Shares Ethereum ETF",
-    "group": "growth"
+    "group": "growth",
+    "includeInCharts": false
   },
   {
     "symbol": "STRF",
     "name": "Strategy Inc 10% Series A Perpetual Strife Preferred Stock",
-    "group": "defensive"
+    "group": "defensive",
+    "includeInCharts": false
   }
 ]

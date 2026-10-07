@@ -10,7 +10,7 @@ import { fetchMarketstackEodBatch, groupEodRowsBySymbol } from "./marketstackEod
 /** Keep in sync with src/utils/marketstackSymbols.js */
 const MARKETSTACK_SYMBOLS = [
   "IVV.XASX", "NDQ.XASX", "RBTZ.XASX", "CRYP.XASX", "EBTC.CHIA", "EETH.CHIA",
-  "VAS.XASX", "VHY.XASX", "VAP.XASX", "IOO.XASX", "VAF.XASX", "VGS.XASX", "STRF.XNAS",
+  "VAS.XASX", "VHY.XASX", "VAP.XASX", "IOO.XASX", "VAF.XASX", "VBND.XASX", "VGS.XASX", "STRF.XNAS",
 ];
 
 const yearsAgo = (years) => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TimeframeToolbar } from "./TimeframeToolbar";
 import { ETFSection } from "./ETFSection";
 import { PerformanceTable } from "./PerformanceTable";
@@ -22,8 +22,9 @@ export const Dashboard = () => {
   const [selectedETF, setSelectedETF] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const growth = ETF_CONFIG.filter((e) => e.group === "growth");
-  const defensive = ETF_CONFIG.filter((e) => e.group === "defensive" && e.symbol !== "STRF");
+  const onCharts = ETF_CONFIG.filter((e) => e.includeInCharts !== false);
+  const growth = onCharts.filter((e) => e.group === "growth");
+  const defensive = onCharts.filter((e) => e.group === "defensive");
 
   const handleChartClick = (etf) => {
     setSelectedETF(etf);
@@ -34,6 +35,24 @@ export const Dashboard = () => {
     setIsModalOpen(false);
     setSelectedETF(null);
   };
+
+  useEffect(() => {
+    const ticker = window.location.hash.replace(/^#/, "").trim().toUpperCase();
+    if (!ticker) return;
+    const match = ETF_CONFIG.find((etf) => {
+      const bare = etf.symbol.split(".")[0].toUpperCase();
+      return bare === ticker || etf.symbol.toUpperCase() === ticker;
+    });
+    if (!match || match.includeInCharts === false) return;
+    const card = document.getElementById(`etf-card-${match.symbol}`);
+    if (!card) return;
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.add("ring-2", "ring-emerald-400", "ring-opacity-75");
+    const timer = window.setTimeout(() => {
+      card.classList.remove("ring-2", "ring-emerald-400", "ring-opacity-75");
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [ETF_CONFIG]);
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-10 space-y-4 sm:space-y-6 lg:space-y-8">

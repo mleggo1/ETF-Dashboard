@@ -159,11 +159,12 @@ export const PerformanceTable = () => {
   };
   
   const currentPerformance = useMemo(() => {
-    return ETF_CONFIG.map(({ symbol, name }) => {
+    return ETF_CONFIG.map(({ symbol, name, includeInCharts }) => {
       const raw = etfMetadata[symbol]?.performanceRaw || {};
       return {
         etf: `${symbol} – ${name}`,
         symbol,
+        includeInCharts: includeInCharts !== false,
         y1: raw.y1 ?? null,
         y3: raw.y3 ?? null,
         y5: raw.y5 ?? null,
@@ -173,7 +174,8 @@ export const PerformanceTable = () => {
   }, [ETF_CONFIG]);
   
   // Scroll to ETF card when row is clicked
-  const handleRowClick = (symbol) => {
+  const handleRowClick = (symbol, includeInCharts) => {
+    if (!includeInCharts) return;
     const cardElement = document.getElementById(`etf-card-${symbol}`);
     if (cardElement) {
       cardElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -364,6 +366,7 @@ export const PerformanceTable = () => {
                 const symbol = row.symbol || row.etf?.split(" – ")[0] || `row-${index}`;
                 const isDragging = index === draggedIndex;
                 const isDropTarget = index === dragOverIndex;
+                const hasChart = row.includeInCharts !== false;
 
                 return (
                   <tr
@@ -374,8 +377,13 @@ export const PerformanceTable = () => {
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, index)}
                     onDragEnd={handleDragEnd}
-                    onClick={() => handleRowClick(symbol)}
-                    className={`odd:bg-slate-900/50 even:bg-slate-900/30 border-b border-slate-800/40 cursor-pointer transition hover:bg-slate-800/60 hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.3)] active:bg-slate-800/70 select-none ${
+                    onClick={() => handleRowClick(symbol, hasChart)}
+                    title={hasChart ? "Show this ETF on the chart" : "Kept in historical performance. Not drawn as a chart."}
+                    className={`odd:bg-slate-900/50 even:bg-slate-900/30 border-b border-slate-800/40 transition select-none ${
+                      hasChart
+                        ? "cursor-pointer hover:bg-slate-800/60 hover:shadow-[inset_0_0_0_1px_rgba(16,185,129,0.3)] active:bg-slate-800/70"
+                        : "cursor-default"
+                    } ${
                       isDragging ? "opacity-50" : ""
                     } ${isDropTarget ? "border-l-2 border-l-emerald-400 bg-emerald-900/20" : ""}`}
                   >
@@ -388,7 +396,7 @@ export const PerformanceTable = () => {
                     <td className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-xs sm:text-sm lg:text-base font-semibold text-slate-200">
                       <div className="flex items-center gap-2">
                         <span>{row.etf}</span>
-                        <span className="text-emerald-400/60 text-[10px]">→</span>
+                        {hasChart ? <span className="text-emerald-400/60 text-[10px]">→</span> : null}
                       </div>
                     </td>
                     <td className={`px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-sm sm:text-base lg:text-lg font-bold ${getValueClass(row.y1)}`}>
@@ -417,8 +425,10 @@ export const PerformanceTable = () => {
         </table>
       </div>
       <p className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-[9px] sm:text-[10px] lg:text-xs text-slate-400/80 leading-relaxed">
-        Returns use adjusted close prices (distributions reflected in the series). 1 YR is a holding-period
-        return; 3 / 5 / 10 YRS are annualised (CAGR). A dash means there is not enough history for that window.
+        Figures are the issuer’s annualised NAV total return, net of fund fees, with distributions reinvested.
+        A dash means that period is not published, usually because the fund does not have enough history.
+        Ethereum (EETH) stays in this table and is not drawn on the charts, so the growth and defensive
+        charts stay level. Rows without an arrow are history only.
       </p>
     </div>
   );
