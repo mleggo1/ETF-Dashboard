@@ -6,6 +6,7 @@ import {
   toMarketDateString,
 } from "./asxCalendar";
 import { toDashboardSymbol } from "./marketstackSymbols";
+import { chartLastUpdated, pricesFromYahooChart } from "./yahooChart";
 
 export const DATA_URL = "/data/etf-prices.json";
 
@@ -33,7 +34,7 @@ export const describePriceSources = (etfData) => {
 const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 const SPLIT_THRESHOLD = 7;
 export const CACHE_KEY = "etf-dashboard-cache";
-export const CACHE_VERSION = "3.0";
+export const CACHE_VERSION = "4.0";
 
 const RETRY_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 400;
@@ -182,24 +183,8 @@ const fetchYahooPayload = async (symbol, { interval, range }, signal) => {
   throw lastError || new Error("All Yahoo fallback sources failed");
 };
 
-const extractPricePairs = (chartResult) => {
-  const timestamps = chartResult.timestamp ?? [];
-  const adjCloseSeries = chartResult.indicators?.adjclose?.[0]?.adjclose;
-  const closeSeries = chartResult.indicators?.quote?.[0]?.close;
-  const prices =
-    adjCloseSeries && adjCloseSeries.length ? adjCloseSeries : closeSeries ?? [];
-
-  const pairs = [];
-  for (let i = 0; i < timestamps.length; i += 1) {
-    const ts = timestamps[i];
-    const value = prices[i];
-    if (typeof ts !== "number") continue;
-    if (value === null || value === undefined || Number.isNaN(value)) continue;
-    const date = new Date(ts * 1000).toISOString().slice(0, 10);
-    pairs.push([date, Number.parseFloat(Number(value).toFixed(2))]);
-  }
-  return pairs;
-};
+const extractPricePairs = (chartResult) =>
+  pricesFromYahooChart(chartResult).map(({ date, close }) => [date, close]);
 
 const normalizeForSplits = (pairs) => {
   if (!pairs.length) return [];
@@ -356,9 +341,7 @@ const buildYahooRecord = (symbol, chartResults, dataSource) => {
   }
 
   const referenceMeta = dailyResult?.chartResult ?? monthlyResult.chartResult;
-  const metaLastUpdated = referenceMeta.meta?.regularMarketTime
-    ? new Date(referenceMeta.meta.regularMarketTime * 1000).toISOString().slice(0, 10)
-    : prices[prices.length - 1].date;
+  const metaLastUpdated = chartLastUpdated(referenceMeta, prices) || prices[prices.length - 1].date;
 
   return {
     symbol,

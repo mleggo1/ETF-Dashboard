@@ -134,8 +134,14 @@ export const ETFInfoPanel = ({ etf, metadata, data }) => {
 
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 mb-2">
-            Performance Summary
+            Issuer factsheet
           </h4>
+          <p className="mb-2 text-[11px] text-slate-500 leading-relaxed">
+            Published annualised total return
+            {metadata.performanceAsOf ? ` as at ${metadata.performanceAsOf}` : ""}. The chart and the
+            historical table use the price history through the latest close, so those figures are the ones
+            that line up with each other.
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {performanceEntries.map(([period, returnValue]) => (
               <div

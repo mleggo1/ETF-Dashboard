@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
 import { AppContext } from "../App";
-import etfMetadata, { canonicalDataset } from "../data/etfMetadata.js";
+import { canonicalDataset } from "../data/etfMetadata.js";
+import { calculatePerformance } from "../utils/performanceCalculator";
 
 const PERFORMANCE_CACHE_KEY = "etf-performance-cache";
-const PERFORMANCE_CACHE_VERSION = 6; // canonical issuer snapshot + dataset version
+const PERFORMANCE_CACHE_VERSION = 7; // price-history returns, same definition as the charts
 const CUSTOM_ORDER_KEY = "etf-performance-custom-order";
 
 const loadCustomOrder = () => {
@@ -79,7 +80,7 @@ const getSortValue = (row, key) => {
 };
 
 export const PerformanceTable = () => {
-  const { ETF_CONFIG, lastRefreshTimestamp } = React.useContext(AppContext);
+  const { ETF_CONFIG, etfData, lastRefreshTimestamp } = React.useContext(AppContext);
   const [cachedPerformance, setCachedPerformance] = React.useState(loadCachedPerformance());
   const [sortBy, setSortBy] = React.useState("y1");
   const [sortDir, setSortDir] = React.useState("desc");
@@ -159,19 +160,13 @@ export const PerformanceTable = () => {
   };
   
   const currentPerformance = useMemo(() => {
-    return ETF_CONFIG.map(({ symbol, name, includeInCharts }) => {
-      const raw = etfMetadata[symbol]?.performanceRaw || {};
-      return {
-        etf: `${symbol} – ${name}`,
-        symbol,
-        includeInCharts: includeInCharts !== false,
-        y1: raw.y1 ?? null,
-        y3: raw.y3 ?? null,
-        y5: raw.y5 ?? null,
-        y10: raw.y10 ?? null,
-      };
-    });
-  }, [ETF_CONFIG]);
+    const priced = ETF_CONFIG.some(({ symbol }) => (etfData?.[symbol]?.prices?.length || 0) > 1);
+    if (!priced) return null;
+    return ETF_CONFIG.map(({ symbol, name, includeInCharts }) => ({
+      ...calculatePerformance(etfData?.[symbol], symbol, name),
+      includeInCharts: includeInCharts !== false,
+    }));
+  }, [ETF_CONFIG, etfData]);
   
   // Scroll to ETF card when row is clicked
   const handleRowClick = (symbol, includeInCharts) => {
@@ -256,7 +251,7 @@ export const PerformanceTable = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.3em] text-emerald-100">
-              Historical Performance (Annualised)
+              Historical Performance
             </h3>
             {cachedPerformance?.timestamp && (
               <p className="mt-1 text-[9px] sm:text-[10px] lg:text-xs text-emerald-200/70 normal-case">
@@ -321,19 +316,19 @@ export const PerformanceTable = () => {
                 className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
                 onClick={() => handleSort("y3")}
               >
-                <span className="inline-flex items-center justify-end gap-1 w-full">3 YRS <SortIndicator column="y3" /></span>
+                <span className="inline-flex items-center justify-end gap-1 w-full">3 YRS p.a. <SortIndicator column="y3" /></span>
               </th>
               <th
                 className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
                 onClick={() => handleSort("y5")}
               >
-                <span className="inline-flex items-center justify-end gap-1 w-full">5 YRS <SortIndicator column="y5" /></span>
+                <span className="inline-flex items-center justify-end gap-1 w-full">5 YRS p.a. <SortIndicator column="y5" /></span>
               </th>
               <th
                 className="px-4 sm:px-5 lg:px-6 py-3 sm:py-3.5 text-right text-[10px] sm:text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em] text-slate-300 cursor-pointer select-none hover:bg-slate-800/60 transition"
                 onClick={() => handleSort("y10")}
               >
-                <span className="inline-flex items-center justify-end gap-1 w-full">10 YRS <SortIndicator column="y10" /></span>
+                <span className="inline-flex items-center justify-end gap-1 w-full">10 YRS p.a. <SortIndicator column="y10" /></span>
               </th>
             </tr>
           </thead>
@@ -425,10 +420,12 @@ export const PerformanceTable = () => {
         </table>
       </div>
       <p className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-[9px] sm:text-[10px] lg:text-xs text-slate-400/80 leading-relaxed">
-        Figures are the issuer’s annualised NAV total return, net of fund fees, with distributions reinvested.
-        A dash means that period is not published, usually because the fund does not have enough history.
-        Ethereum (EETH) stays in this table and is not drawn on the charts, so the growth and defensive
-        charts stay level. Rows without an arrow are history only.
+        1 YR is the total change from the close about one year before the latest close. It uses the same
+        price history as the 1Y chart, so the two figures match. 3, 5 and 10 years are the average change
+        per year, and the 5Y and 10Y labels on the charts use that same average. A dash means the price
+        history does not cover the full window. Issuer factsheet returns, in each ETF’s details, are the
+        manager’s published figures as at the factsheet date. Ethereum (EETH) stays in this table and is
+        left off the charts, so the growth and defensive charts stay level. Rows without an arrow are history only.
       </p>
     </div>
   );

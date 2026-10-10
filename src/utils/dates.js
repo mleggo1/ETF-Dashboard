@@ -1,3 +1,33 @@
+/** Calendar date (YYYY-MM-DD) for a Yahoo bar in the exchange timezone. */
+export const calendarDateFromUnix = (unixSeconds, timeZone = "UTC") => {
+  const date = new Date(unixSeconds * 1000);
+  if (Number.isNaN(date.getTime())) return null;
+
+  let formatter;
+  try {
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timeZone || "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  } catch {
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  }
+
+  const parts = {};
+  formatter.formatToParts(date).forEach((part) => {
+    if (part.type !== "literal") parts[part.type] = part.value;
+  });
+  if (!parts.year || !parts.month || !parts.day) return null;
+  return `${parts.year}-${parts.month}-${parts.day}`;
+};
+
 /** Parse a YYYY-MM-DD price date as a local calendar day (avoids UTC off-by-one). */
 export const parseISODate = (dateStr) => {
   if (!dateStr || typeof dateStr !== "string") return new Date(NaN);

@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { filterPricesByTimeframe, parseISODate, returnCoverageLabel } from "../utils/dates";
+import { isAnnualisedTimeframe, periodReturn } from "../utils/performanceCalculator";
 
 const filterByTimeframe = (prices, timeframe) => filterPricesByTimeframe(prices, timeframe);
 
@@ -103,23 +104,21 @@ export const MiniLineChart = ({ timeframe, data, group }) => {
     return <div className="text-xs text-slate-400">Not enough data for {timeframe}</div>;
   }
 
-  const first = filtered[0];
-  const last = filtered[filtered.length - 1];
-  const pct =
-    first && last
-      ? (((last.close - first.close) / first.close) * 100).toFixed(2)
-      : null;
+  const pctValue = periodReturn(data.prices, timeframe);
+  const pct = pctValue == null ? null : pctValue.toFixed(2);
   const coverage = returnCoverageLabel(filtered, timeframe);
+  const annualised = isAnnualisedTimeframe(timeframe);
 
   return (
     <div className="flex flex-col h-full">
       <div className="mb-1 flex items-center justify-between text-xs text-slate-300 flex-shrink-0 gap-2">
         <span>
           {timeframe}
+          {annualised ? " p.a." : ""}
           {coverage ? <span className="ml-1 text-[10px] normal-case tracking-normal text-slate-500">{coverage}</span> : null}
         </span>
-        <span className={pct >= 0 ? chartColors.percentagePositive : "text-red-500"}>
-          {pct ? `${pct}%` : ""}
+        <span className={pct != null && Number(pct) >= 0 ? chartColors.percentagePositive : "text-red-500"}>
+          {pct != null ? `${pct}%` : "—"}
         </span>
       </div>
       <div className="flex-1 min-h-0">

@@ -1,6 +1,8 @@
+import { spawnSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { chartLastUpdated, pricesFromYahooChart } from "../src/utils/yahooChart.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,61 +20,55 @@ const loadEtfConfig = () => {
     .map((item) => ({ symbol: item.dashboardSymbol, name: item.fundName }));
 };
 
-const fetchYahooSeries = async (symbol) => {
+const fetchChartBody = async (symbol) => {
   const url = new URL(symbol, YAHOO_CHART_ENDPOINT);
   url.searchParams.set("interval", "1d");
   url.searchParams.set("range", "10y");
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "Mozilla/5.0 (compatible; ETFDashboard/1.0)",
-    },
-  });
-  if (!res.ok) {
-    throw new Error(`Request failed for ${symbol} (${res.status}): ${res.statusText}`);
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; ETFDashboard/1.0)",
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`Request failed for ${symbol} (${res.status}): ${res.statusText}`);
+    }
+    return await res.json();
+  } catch (error) {
+    const curled = spawnSync(
+      "curl.exe",
+      ["-sS", "-A", "Mozilla/5.0", url.toString()],
+      { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }
+    );
+    if (curled.status !== 0 || !curled.stdout) {
+      throw error;
+    }
+    return JSON.parse(curled.stdout);
   }
-  const body = await res.json();
+};
+
+const fetchYahooSeries = async (symbol) => {
+  const body = await fetchChartBody(symbol);
   const chartResult = body?.chart?.result?.[0];
   if (!chartResult) {
     const message = body?.chart?.error?.description || "No chart data returned";
     throw new Error(`No chart data for ${symbol}: ${message}`);
   }
-  const timestamps = chartResult.timestamp ?? [];
-  const adjCloseSeries = chartResult.indicators?.adjclose?.[0]?.adjclose;
-  const closeSeries = chartResult.indicators?.quote?.[0]?.close;
-  const pricesSeries = adjCloseSeries && adjCloseSeries.length ? adjCloseSeries : closeSeries ?? [];
 
-  const prices = [];
-  for (let i = 0; i < timestamps.length; i += 1) {
-    const ts = timestamps[i];
-    const value = pricesSeries[i];
-    if (typeof ts !== "number") continue;
-    if (value === null || value === undefined || Number.isNaN(value)) continue;
-    const date = new Date(ts * 1000).toISOString().slice(0, 10);
-    prices.push({
-      date,
-      close: Number.parseFloat(Number(value).toFixed(2)),
-    });
-  }
-  prices.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-
+  const prices = pricesFromYahooChart(chartResult);
   if (!prices.length) {
     throw new Error(`No price points after filtering for ${symbol}`);
   }
 
   const meta = chartResult.meta ?? {};
-  const lastUpdated =
-    meta.regularMarketTime != null
-      ? new Date(meta.regularMarketTime * 1000).toISOString().slice(0, 10)
-      : prices[prices.length - 1].date;
-
   return {
     symbol,
     prices,
     currency: meta.currency || "AUD",
     exchangeName: meta.exchangeName,
-    lastUpdated,
+    lastUpdated: chartLastUpdated(chartResult, prices),
   };
 };
 

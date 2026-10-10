@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { AppContext } from "../App";
 import { MiniLineChart } from "./MiniLineChart";
 import { formatDataSourceLabel } from "../utils/marketData";
+import { sessionChangePercent } from "../utils/yahooChart";
 
 const LOCAL_OPTIONS = ["SYNC", "YTD", "1Y", "2Y", "5Y", "10Y", "ALL"];
 
@@ -13,14 +14,8 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
   const isDefensive = group === "defensive";
 
   const latestPoint = data?.prices?.[data.prices.length - 1];
-  const previousPoint =
-    data?.prices && data.prices.length > 1 ? data.prices[data.prices.length - 2] : null;
-
   const latestClose = latestPoint?.close ?? null;
-  const dailyPct =
-    latestClose && previousPoint?.close
-      ? ((latestClose - previousPoint.close) / previousPoint.close) * 100
-      : null;
+  const dailyPct = sessionChangePercent(data?.prices);
 
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return "—";
@@ -82,9 +77,11 @@ export const ETFCard = ({ etf, onChartClick, group }) => {
         <div
           className={
             "rounded-full px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] flex-shrink-0 " +
-            (dailyPct >= 0
-              ? "bg-emerald-500/20 text-emerald-200"
-              : "bg-rose-500/10 text-rose-200")
+            (dailyPct == null
+              ? "bg-slate-700/40 text-slate-300"
+              : dailyPct >= 0
+                ? "bg-emerald-500/20 text-emerald-200"
+                : "bg-rose-500/10 text-rose-200")
           }
         >
           {dailyPct === null ? "—" : `${dailyPct >= 0 ? "+" : ""}${dailyPct.toFixed(2)}%`}

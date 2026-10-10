@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { chartLastUpdated, pricesFromYahooChart } from "../src/utils/yahooChart.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,22 +32,7 @@ async function fetchYahooPayload(symbol, { range, interval }) {
 }
 
 function extractPricePoints(chartResult) {
-  const timestamps = chartResult.timestamp ?? [];
-  const adjClose = chartResult.indicators?.adjclose?.[0]?.adjclose;
-  const close = chartResult.indicators?.quote?.[0]?.close;
-  const priceSeries = adjClose?.length ? adjClose : close ?? [];
-
-  const pairs = [];
-  for (let i = 0; i < timestamps.length; i += 1) {
-    const value = priceSeries[i];
-    const ts = timestamps[i];
-    if (value === null || value === undefined) continue;
-    if (typeof ts !== "number") continue;
-    const isoDate = new Date(ts * 1000).toISOString().slice(0, 10);
-    if (!isoDate) continue;
-    pairs.push([isoDate, Number.parseFloat(Number(value).toFixed(2))]);
-  }
-  return pairs;
+  return pricesFromYahooChart(chartResult).map(({ date, close }) => [date, close]);
 }
 
 function normalizeForSplits(prices) {
@@ -114,9 +100,7 @@ async function fetchYahooSeries(symbol) {
   }
 
   const meta = daily ?? monthly;
-  const lastUpdated = meta.meta?.regularMarketTime
-    ? new Date(meta.meta.regularMarketTime * 1000).toISOString().slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
+  const lastUpdated = chartLastUpdated(meta, prices) || prices[prices.length - 1].date;
 
   return {
     symbol,

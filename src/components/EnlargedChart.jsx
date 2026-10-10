@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { filterPricesByTimeframe, parseISODate, returnCoverageLabel } from "../utils/dates";
+import { isAnnualisedTimeframe, periodReturn } from "../utils/performanceCalculator";
 
 const filterByTimeframe = (prices, timeframe) => filterPricesByTimeframe(prices, timeframe);
 
@@ -124,12 +125,19 @@ export const EnlargedChart = ({ timeframe, data, group, layout }) => {
   }
 
   const first = filtered[0];
-  const last = filtered[filtered.length - 1];
-  const cumulativeReturn =
-    first && last
-      ? (((last.close - first.close) / first.close) * 100).toFixed(2)
-      : null;
+  const periodValue = periodReturn(data.prices, timeframe);
+  const cumulativeReturn = periodValue == null ? null : periodValue.toFixed(2);
   const coverage = returnCoverageLabel(filtered, timeframe);
+  const annualised = isAnnualisedTimeframe(timeframe);
+  const periodLabel = annualised ? "Average per year" : "Total change";
+  const matchNote =
+    timeframe === "1Y"
+      ? "Matches the 1 YR column."
+      : timeframe === "5Y"
+        ? "Matches the 5 YRS column."
+        : timeframe === "10Y"
+          ? "Matches the 10 YRS column."
+          : null;
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -214,10 +222,11 @@ export const EnlargedChart = ({ timeframe, data, group, layout }) => {
     >
       <div className={`flex items-center justify-between ${isModal ? "mb-2 lg:mb-4" : "mb-4"}`}>
         <div className={`text-slate-300 ${isModal ? "text-xs lg:text-sm" : "text-sm"}`}>
-          <span className="text-slate-400">Period return{coverage ? ` (${coverage})` : ""}: </span>
-          <span className={cumulativeReturn >= 0 ? chartColors.percentagePositive : "text-rose-400"}>
-            {cumulativeReturn !== null ? `${cumulativeReturn >= 0 ? "+" : ""}${cumulativeReturn}%` : "—"}
+          <span className="text-slate-400">{periodLabel}{coverage ? ` (${coverage})` : ""}: </span>
+          <span className={cumulativeReturn != null && Number(cumulativeReturn) >= 0 ? chartColors.percentagePositive : "text-rose-400"}>
+            {cumulativeReturn !== null ? `${Number(cumulativeReturn) >= 0 ? "+" : ""}${cumulativeReturn}%` : "—"}
           </span>
+          {matchNote ? <span className="ml-2 text-[10px] normal-case tracking-normal text-slate-500">{matchNote}</span> : null}
         </div>
       </div>
       {isModal ? (

@@ -1,4 +1,4 @@
-import { filterPricesByTimeframe, parseISODate } from "./dates";
+import { filterPricesByTimeframe, parseISODate } from "./dates.js";
 
 const filterByTimeframe = (prices, timeframe) => filterPricesByTimeframe(prices, timeframe);
 
@@ -56,6 +56,17 @@ export const calculateAnnualizedReturn = (prices, years) => {
   return annualizedReturn;
 };
 
+export const isAnnualisedTimeframe = (timeframe) =>
+  timeframe === "3Y" || timeframe === "5Y" || timeframe === "10Y";
+
+/** Same number the chart label and the historical table both show for a window. */
+export const periodReturn = (prices, timeframe) => {
+  if (timeframe === "3Y") return calculateAnnualizedReturn(prices, 3);
+  if (timeframe === "5Y") return calculateAnnualizedReturn(prices, 5);
+  if (timeframe === "10Y") return calculateAnnualizedReturn(prices, 10);
+  return calculateTimeframeReturn(prices, timeframe);
+};
+
 // Calculate performance for all timeframes
 export const calculatePerformance = (etfData, symbol, name) => {
   if (!etfData || !etfData.prices || etfData.prices.length < 2) {
@@ -69,11 +80,10 @@ export const calculatePerformance = (etfData, symbol, name) => {
     };
   }
   
-  // 1Y uses simple return (same as charts), others use annualized
-  const y1 = calculateTimeframeReturn(etfData.prices, "1Y");
-  const y3 = calculateAnnualizedReturn(etfData.prices, 3);
-  const y5 = calculateAnnualizedReturn(etfData.prices, 5);
-  const y10 = calculateAnnualizedReturn(etfData.prices, 10);
+  const y1 = periodReturn(etfData.prices, "1Y");
+  const y3 = periodReturn(etfData.prices, "3Y");
+  const y5 = periodReturn(etfData.prices, "5Y");
+  const y10 = periodReturn(etfData.prices, "10Y");
   
   return {
     etf: `${symbol} – ${name}`,
